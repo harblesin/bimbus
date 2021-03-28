@@ -8,6 +8,7 @@ const { MessageAttachment, PlayInterface } = require('discord.js');
 const fs = require('fs')
 const client = new Discord.Client();
 const ytdl = require('ytdl-core')
+var jsmediatags = require("jsmediatags");
 
 
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
@@ -19,11 +20,38 @@ app.use(express.static(path.join(__dirname + "../../../../../Pictures")));
 app.use(express.static(path.join(__dirname + "../../../../../Music")))
 app.use(express.static(path.join(__dirname + "../../../../../Videos")))
 
+
+let connectedChannel;
+let dispatcher;
+
 client.on('ready', () => {
+
     console.log(`Logged in as ${client.user.tag}`);
+
+
+
+
+    client.channels.fetch('319404366518026240').then(async channel => {
+        connectedChannel = await channel.join();
+
+    })
+
+
 });
 
-client.on('message', msg => {
+
+
+
+client.on('message', async msg => {
+
+
+
+    if (msg.content === 'join') {
+        connectedChannel = await msg.member.voice.channel.join();
+    }
+
+
+
     if (msg.content === 'bot') {
 
         msg.reply("You think youre so fucking funny don't you, suck my fat ass")
@@ -67,58 +95,102 @@ client.on('message', msg => {
         })
     }
 
-    if (msg.content === 'play') {
+    if ((msg.content).toLowerCase() === 'play music' || (msg.content).toLowerCase() === 'next') {
+        
 
-        client.channels.fetch('319404366518026240').then(channel => {
+        let song  = await playRandomSong();
 
-            channel.join();
+        let albumCover = new MessageAttachment(song.albumCover)
 
-            let thing = client.voice.createBroadcast();
+        msg.reply(`Now Playing ${song.title} by ${song.artist}`, albumCover);
 
+        song.dispatcher.on('finish', async () => {
+           let song = await playRandomSong();
 
-            fs.readdir(path.join(__dirname + `../../../../../Music`), (err, files) => {
+           let albumCover = new MessageAttachment(song.albumCover)
 
-                let choice = Math.floor((Math.random() * files.length) + 1);
+           msg.reply(`Now Playing ${song.title} by ${song.artist}`, albumCover);
 
-                if (err) {
-                    throw err;
-                }
-                thing.play('http://localhost:8080/' + files[choice], { volume: 0.25 });
-                for (const connection of client.voice.connections.values()) {
-                    connection.play(thing);
-                }
-            })
         })
+
     }
 
-    if ( msg.content === 'tobias') {
+    if (msg.content === 'play') {
 
 
-        client.channels.fetch('319404366518026240').then(channel => {
-            console.log('haha hey')
-            let broadcast = client.voice.createBroadcast();
+        if (!dispatcher) {
+            msg.reply("Nothing was fucking playing that could be resumed you fucking dumbass")
+            return;
+        }
 
-            broadcast.play(ytdl('https://www.youtube.com/watch?v=gkvpTq1Lf5s', { filter: 'audioonly' }));
-            for (const connection of client.voice.connections.values()) {
-                connection.play(broadcast);
-            }
-
-        })
+        dispatcher.resume();
 
 
+    } else if (msg.content.split(' ').length === 2 && msg.content.split(" ")[0] === 'play' && msg.content.split(" ")[1].substring(0, 23) === 'https://www.youtube.com') {
 
+        connectedChannel.play(ytdl(msg.content.split(' ')[1], { filter: 'audioonly' }));
+
+    }
+
+
+    if (msg.content === 'pause') {
+        dispatcher.pause();
     }
 
     if (msg.content === 'funny cat') {
-
-
-
         const image = new MessageAttachment('http://localhost:8080/tumblr_6e6c1e4b54d27fcd445f5ceff12b0c0b_47bdf23f_500.png');
-        console.log(image)
         msg.reply(image)
     }
-
 });
+
+
+
+
+const playRandomSong = () => {
+
+    return new Promise((resolve, reject) => {
+
+        fs.readdir(path.join(__dirname + `../../../../../Music`), (err, files) => {
+
+            let choice = Math.floor((Math.random() * files.length) + 1);
+
+            if (err) {
+                throw err;
+            }
+
+            let song = files[choice]
+
+
+            dispatcher = connectedChannel.play('http://localhost:8080/' + song, { volume: 0.25 });
+
+
+            jsmediatags.read('http://localhost:8080/' + song, {
+                onSuccess: tag => {
+
+                    console.log(tag)
+
+                    let songInfo = {
+                        title: tag.tags.title,
+                        artist: tag.tags.artist,
+                        albumCover: tag.tags.picture ? new Buffer.from(tag.tags.picture.data) : tag.tags.APIC ? new Buffer.from(tag.tags.APIC.data) : '',
+                        dispatcher
+                    }
+
+                    resolve(songInfo)
+
+                },
+                onError: (error) => {
+                    reject(error.type, error.info)
+                    // console.log(error.type, error.info)
+                }
+            });
+        })
+
+    }).catch( err => console.log(err))
+}
+
+
+
 
 client.login(process.env.DISCORD_TOKEN);
 
