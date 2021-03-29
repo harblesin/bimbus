@@ -1,0 +1,55 @@
+.div {
+    /* width: 200px; */
+    display: flex!important;
+    flex-direction: row!important;
+    justify-content: center!important;
+}
+
+.list {
+    /* width: 200px; */
+    display: flex!important;
+    flex-direction: column!important;
+    justify-content: space-evenly!important;
+}
+
+.listItem {
+    height: 100px!important;
+    margin-top: 20px;
+    width: 50vw!important;
+    border: 1px solid red;
+    color: white;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.infoSection {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    text-align: left;
+    padding: 20px;
+}
+
+.buttonRow { 
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.button {
+    /* margin-left: 200px; */
+    color: white;
+    background-color: rgb(25, 25, 43);
+    padding: 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 10px;
+}
+
+.img {
+    /* display: flex; */
+    /* flex-direction: row; */
+    /* justify-content: flex-start; */
+    /* float: right */
+}
