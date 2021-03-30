@@ -15,7 +15,7 @@ const NowPlaying = props => {
                         <button onClick={() => props.next(props.index)}>Next</button>
                         <button onClick={() => API.resumeYoutube()}>Play</button>
                         <button onClick={() => API.pauseYoutube()}>Pause</button>
-                        <button>Stop</button>
+                        <button onClick={() => API.stopYoutube()}>Stop</button>
                         <button onClick={() => API.volumeDown()}>Volume Down</button>
                         <button onClick={() => API.volumeUp()}>Volume Up</button>
                     </div>

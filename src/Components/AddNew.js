@@ -21,8 +21,11 @@ const AddNew = props => {
 
     return (
         <div className={styles.div}>
-            <input name='link' onChange={(e) => handleChange(e)}></input>
-            <button onClick={(e) => addLink(e)}>Submit</button>
+            <div className={styles.inputHolder}>
+                <input name='link' onChange={(e) => handleChange(e)}></input>
+                <button onClick={(e) => addLink(e)}>Submit</button>
+            </div>
+
         </div>
     )
 }

@@ -8,11 +8,13 @@ const ytdl = require('ytdl-core')
 const jsmediatags = require("jsmediatags");
 const FileType = require('file-type');
 const youtubeLinks = require('../public/links.json');
+const e = require("express");
 
 
 
 let connectedChannel;
 let dispatcher;
+let nowPlayingIndex;
 
 client.on('ready', () => {
     client.channels.fetch('319404366518026240').then(async channel => {
@@ -195,18 +197,7 @@ playRandomSong = () => {
     }).catch(err => console.log(err))
 }
 
-playYoutubeSong = async (link) => {
-    // let thing = await ytdl.getInfo(link)
-    // console.log(thing)
 
-
-
-    //USE INDEX OF usiing the json file and make it play the next song in the list when finished
-
-
-    dispatcher = connectedChannel.play(ytdl(link, { filter: 'audioonly' }));
-    dispatcher.setVolume(0.05)
-}
 
 
 
@@ -251,24 +242,50 @@ webPlaySong = async () => {
     })
 }
 
+
+playYoutubeSong = async (link) => {
+    let thing = await ytdl.getInfo(link)
+    console.log(thing)
+
+
+
+    //USE INDEX OF usiing the json file and make it play the next song in the list when finished
+
+
+    dispatcher = connectedChannel.play(ytdl(link, { filter: 'audioonly' }));
+    dispatcher.setVolume(0.05)
+}
+
+
 webPauseSong = () => {
     dispatcher.pause();
 }
 
-webResumeSong = () => {
-    dispatcher.resume();
+webResumeSong = (index) => {
+    if (!dispatcher) {
+        // index = 0
+        dispatcher = connectedChannel.play(ytdl(youtubeLinks[0], { filter: 'audioonly' }));
+        dispatcher.setVolume(0.03);
+        dispatcher.on('finish', async () => {
+            this.playYoutubeSong(youtubeLinks[Math.floor(Math.Random() * 10) + 10]);
+        });
+    } else {
+        dispatcher.resume();
+    }
 }
 
 webPlayPrevious = (index) => {
-    let link = youtubeLinks[parseInt(index) - 1].link
+    console.log(index);
+    let link = youtubeLinks[index].link
     dispatcher = connectedChannel.play(ytdl(link, { filter: 'audioonly' }));
-    dispatcher.setVolume(0.04);
+    dispatcher.setVolume(0.03);
 }
 
 webPlayNext = (index) => {
-    let link = youtubeLinks[parseInt(index) + 1].link;
+    console.log(index)
+    let link = youtubeLinks[index].link;
     dispatcher = connectedChannel.play(ytdl(link, { filter: 'audioonly' }));
-    dispatcher.setVolume(0.04);
+    dispatcher.setVolume(0.03);
 }
 
 

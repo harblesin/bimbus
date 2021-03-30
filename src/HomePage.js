@@ -28,13 +28,23 @@ class HomePage extends Component {
     }
 
     next = async (index) => {
-        this.setState({ nowPlayingIndex: index + 1 }, () => {
+        if (index === this.state.links.length) {
+            index = 0
+        } else {
+            index = index + 1
+        }
+        this.setState({ nowPlayingIndex: index }, () => {
             API.playNextYoutube(this.state.nowPlayingIndex)
         })
     }
 
     prev = async (index) => {
-        this.setState({ nowPlayingIndex: index - 1 }, () => {
+        if (index === 0) {
+            index = this.state.links.length;
+        } else {
+            index = index - 1
+        }
+        this.setState({ nowPlayingIndex: index }, () => {
             API.playPrevYoutube(this.state.nowPlayingIndex)
         })
     }

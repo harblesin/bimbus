@@ -9,8 +9,8 @@ const PlayList = props => {
                 {props.links.map((l, index) => (
                     <div className={styles.listItem}>
                         <div className={styles.infoSection}>
-                            <div>{l.title}</div>
-                            <div>{l.link}</div>
+                            <div className={styles.title}>{l.title}</div>
+                            <div className={styles.link}>{l.link}</div>
                             <div className={styles.buttonRow}>
                                 <button className={styles.button} onClick={() => props.play(index)}>PLAY THE SONG</button>
                             </div>
