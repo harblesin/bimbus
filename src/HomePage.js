@@ -19,16 +19,18 @@ class HomePage extends Component {
     }
 
     play = async (index) => {
-        let link = this.state.links[index];
+        // let link = this.state.links[index];
 
-        await API.playYoutubeLink(link);
+        console.log(index)
+
+        await API.playYoutubeLink({ index });
 
         this.setState({ nowPlayingIndex: index });
 
     }
 
     next = async (index) => {
-        if (index === this.state.links.length) {
+        if (index === this.state.links.length - 1) {
             index = 0
         } else {
             index = index + 1
@@ -40,12 +42,18 @@ class HomePage extends Component {
 
     prev = async (index) => {
         if (index === 0) {
-            index = this.state.links.length;
+            index = this.state.links.length - 1;
         } else {
             index = index - 1
         }
         this.setState({ nowPlayingIndex: index }, () => {
             API.playPrevYoutube(this.state.nowPlayingIndex)
+        })
+    }
+
+    stop = () => {
+        this.setState({ nowPlayingIndex: 0 }, () => {
+            API.stopYoutube();
         })
     }
 

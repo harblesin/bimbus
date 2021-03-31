@@ -174,14 +174,10 @@ playRandomSong = () => {
 
                     if (tag.tags.picture) {
                         songInfo.albumCover = await new Buffer.from(tag.tags.picture.data)
-                        // songInfo.albumCoverImageType = await FileType.fromBuffer(songInfo.albumCover)
                         songInfo.albumCoverImageType = 'png'
-                        console.log(await FileType.fromBuffer(songInfo.albumCover).ext)
                     } else if (tag.tags.APIC) {
                         songInfo.albumCover = await new Buffer.from(tag.tags.albumCover.data);
                         songInfo.albumCoverImageType = 'png'
-                        // songInfo.albumCoverImageType = await FileType.fromBuffer(songInfo.albumCover)
-                        console.log(await FileType.fromBuffer(songInfo.albumCover).ext)
                     } else {
                         songInfo.albumCover = 'http://localhost:8080/placeholder.png';
                         songInfo.albumCoverImageType = 'png'
@@ -196,9 +192,6 @@ playRandomSong = () => {
 
     }).catch(err => console.log(err))
 }
-
-
-
 
 
 webPlaySong = async () => {
@@ -243,9 +236,15 @@ webPlaySong = async () => {
 }
 
 
-playYoutubeSong = async (link) => {
-    let thing = await ytdl.getInfo(link)
-    console.log(thing)
+playYoutubeSong = async (index) => {
+    let link = youtubeLinks[index].link;
+    let newIndex;
+
+    if (index === youtubeLinks.length - 1) {
+        newIndex = 0;
+    } else {
+        newIndex = index + 1;
+    }
 
 
 
@@ -253,6 +252,10 @@ playYoutubeSong = async (link) => {
 
 
     dispatcher = connectedChannel.play(ytdl(link, { filter: 'audioonly' }));
+    dispatcher.setVolume(0.5)
+    dispatcher.on('finish', async () => {
+        playYoutubeSong(newIndex);
+    });
     dispatcher.setVolume(0.05)
 }
 
@@ -263,11 +266,10 @@ webPauseSong = () => {
 
 webResumeSong = (index) => {
     if (!dispatcher) {
-        // index = 0
-        dispatcher = connectedChannel.play(ytdl(youtubeLinks[0], { filter: 'audioonly' }));
+        dispatcher = connectedChannel.play(ytdl(youtubeLinks[0].link, { filter: 'audioonly' }));
         dispatcher.setVolume(0.03);
         dispatcher.on('finish', async () => {
-            this.playYoutubeSong(youtubeLinks[Math.floor(Math.Random() * 10) + 10]);
+            this.playYoutubeSong(youtubeLinks[Math.floor(Math.Random() * 10) + 1]);
         });
     } else {
         dispatcher.resume();
@@ -275,17 +277,13 @@ webResumeSong = (index) => {
 }
 
 webPlayPrevious = (index) => {
-    console.log(index);
-    let link = youtubeLinks[index].link
-    dispatcher = connectedChannel.play(ytdl(link, { filter: 'audioonly' }));
-    dispatcher.setVolume(0.03);
+    nowPlayingIndex = index;
+    playYoutubeSong(index);
 }
 
 webPlayNext = (index) => {
-    console.log(index)
-    let link = youtubeLinks[index].link;
-    dispatcher = connectedChannel.play(ytdl(link, { filter: 'audioonly' }));
-    dispatcher.setVolume(0.03);
+    nowPlayingIndex = index;
+    playYoutubeSong(index);
 }
 
 
@@ -294,7 +292,6 @@ addYoutubeLink = async (link) => {
     let weGood = ytdl.validateURL(link)
 
     if (!weGood) {
-        console.log("NO WE AREN'T GOOD")
         return;
     }
     let linkInfo = await ytdl.getInfo(link);
@@ -308,7 +305,6 @@ addYoutubeLink = async (link) => {
 
     return fs.writeFile(path.join(__dirname + `/../public/links.json`), JSON.stringify(youtubeLinks), err => {
         if (err) {
-            console.log(err)
             return err
         } else {
             return 'File appended.'
@@ -331,6 +327,11 @@ volumeUp = () => {
     return
 }
 
+youtubeStop = () => {
+    dispatcher.destroy();
+    dispatcher = '';
+}
+
 client.login(process.env.DISCORD_TOKEN);
 
 module.exports = {
@@ -342,5 +343,6 @@ module.exports = {
     webPlayNext,
     addYoutubeLink,
     volumeDown,
-    volumeUp
+    volumeUp,
+    youtubeStop
 }

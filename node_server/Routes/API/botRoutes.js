@@ -24,6 +24,8 @@ router.route('/volumedown').get(botController.volumeDown);
 
 router.route('/volumeup').get(botController.volumeUp);
 
+router.route("/stop").get(botController.stopYoutube);
+
 
 
 module.exports = router;

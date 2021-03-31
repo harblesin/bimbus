@@ -36,7 +36,8 @@ const getLinks = async (req, res) => {
 }
 
 const playYoutube = (req, res) => {
-    bot.playYoutubeSong(req.body.link);
+    console.log(req.body.index)
+    bot.playYoutubeSong(req.body.index);
     res.end();
 }
 
@@ -87,6 +88,10 @@ const volumeUp = (req, res) => {
     res.end();
 }
 
+const stopYoutube = (req, res) => {
+    bot.youtubeStop();
+    res.end();
+}
 
 module.exports = {
     play,
@@ -98,5 +103,6 @@ module.exports = {
     playNextYoutube,
     addYoutubeLink,
     volumeDown,
-    volumeUp
+    volumeUp,
+    stopYoutube
 }

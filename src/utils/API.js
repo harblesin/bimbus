@@ -7,8 +7,8 @@ module.exports = {
     getLinks: () => {
         return axios.get('/api/bot/links')
     },
-    playYoutubeLink: (link) => {
-        return axios.post('/api/bot/playyoutube', link);
+    playYoutubeLink: (index) => {
+        return axios.post('/api/bot/playyoutube', index);
     },
     pauseYoutube: () => {
         return axios.get('/api/bot/pause');
@@ -30,5 +30,8 @@ module.exports = {
     },
     volumeUp: () => {
         return axios.get('/api/bot/volumeup');
+    },
+    stopYoutube: () => {
+        return axios.get('/api/bot/stop');
     }
 }
