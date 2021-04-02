@@ -17,6 +17,12 @@ app.use(express.static(path.join(__dirname + "../../../../../Pictures")));
 app.use(express.static(path.join(__dirname + "../../../../../Music")))
 app.use(express.static(path.join(__dirname + "../../../../../Videos")))
 
+if (process.env.NODE_ENV === "production") {
+    app.use(express.static(path.join(__dirname + "../../../../../../srv/Pictures")));
+} else {
+    app.use(express.static(path.join(__dirname + "../../../../../Desktop/")));
+}
+
 
 app.use(router);
 
