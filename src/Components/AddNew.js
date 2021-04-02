@@ -4,7 +4,9 @@ import API from "./../utils/API";
 
 const AddNew = props => {
 
-    const [link, setLink] = useState();
+    const [link, setLink] = useState({
+        link: ''
+    });
 
     const handleChange = (e) => {
         e.preventDefault();
@@ -14,7 +16,11 @@ const AddNew = props => {
 
     const addLink = async (e) => {
         e.preventDefault();
-        await API.addYoutubeLink(link);
+        let result = await API.addYoutubeLink(link);
+        console.log(result.data)
+        if (result === 'no') {
+            alert("THAT ISN'T A YOUTUBE LINK YOU JERK");
+        }
         setLink({ link: '' });
         await props.refreshLinks()
     }

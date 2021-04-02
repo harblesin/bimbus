@@ -7,7 +7,7 @@ const PlayList = props => {
         <div className={styles.div}>
             <div className={styles.list}>
                 {props.links.map((l, index) => (
-                    <div className={styles.listItem}>
+                    <div className={styles.listItem} key={l.title}>
                         <div className={styles.infoSection}>
                             <div className={styles.title}>{l.title}</div>
                             <div className={styles.link}>{l.link}</div>

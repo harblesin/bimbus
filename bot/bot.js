@@ -302,8 +302,7 @@ addYoutubeLink = async (link) => {
     let weGood = ytdl.validateURL(link)
 
     if (!weGood) {
-        // res.json('nope')
-        return;
+        return 'no';
     }
     let linkInfo = await ytdl.getInfo(link);
 
