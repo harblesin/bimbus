@@ -68,7 +68,6 @@ class HomePage extends Component {
     }
 
     render = () => {
-        const headerImage = process.env.NODE_ENV === "production" ? "https://localhost:8080/q-double.gif" : "http://localhost:8080/q-double.gif";
         return (
             <div className={styles.background}>
                 <div className={styles.header}>
@@ -76,7 +75,7 @@ class HomePage extends Component {
                         <div className={styles.headerText}>
                             <span className={styles.funnyText}>Corn</span>
                         </div>
-                        <img className={styles.img} src={headerImage} alt="Pic" />
+                        <img className={styles.img} src="../public/q-double.gif" alt="Pic" />
                         <div className={styles.headerText}>
                             <span className={styles.funnyText}>Corner</span>
                         </div>
