@@ -114,6 +114,16 @@ client.on('message', async msg => {
         dispatcher.setVolume(msg.content.split(" ")[1])
     }
 
+
+    if (msg.content.indexOf("giphy.com") !== -1) {
+        msg.reply("You have posted cringe, borther. Deleted.");
+        setTimeout(() => {
+            msg.delete()
+        }, 3000)
+    }
+
+
+
     if (msg.content === 'play') {
 
 
@@ -292,6 +302,7 @@ addYoutubeLink = async (link) => {
     let weGood = ytdl.validateURL(link)
 
     if (!weGood) {
+        // res.json('nope')
         return;
     }
     let linkInfo = await ytdl.getInfo(link);

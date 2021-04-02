@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import axios from 'axios';
 import styles from "./HomePage.module.css";
 import NowPlaying from "./Components/NowPlaying";
 import PlayList from "./Components/PlayList";
@@ -60,7 +59,6 @@ class HomePage extends Component {
 
     refreshLinks = async () => {
         let files = await API.getLinks();
-        console.log(files)
         this.setState({ links: files.data })
     }
 
@@ -70,6 +68,7 @@ class HomePage extends Component {
     }
 
     render = () => {
+        const headerImage = process.env.NODE_ENV === "production" ? "https://localhost:8080/q-double.gif" : "http://localhost:8080/q-double.gif";
         return (
             <div className={styles.background}>
                 <div className={styles.header}>
@@ -77,7 +76,7 @@ class HomePage extends Component {
                         <div className={styles.headerText}>
                             <span className={styles.funnyText}>Corn</span>
                         </div>
-                        <img className={styles.img} src="http://localhost:8080/q-double.gif" />
+                        <img className={styles.img} src={headerImage} alt="Pic" />
                         <div className={styles.headerText}>
                             <span className={styles.funnyText}>Corner</span>
                         </div>

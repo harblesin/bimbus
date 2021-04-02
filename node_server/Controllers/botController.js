@@ -8,7 +8,6 @@ const linksFile = require("../../public/links.json");
 
 const play = (req, res) => {
 
-    console.log("hehehe")
     bot.webPlaySong();
     res.end()
 }
@@ -17,26 +16,10 @@ const play = (req, res) => {
 const getLinks = async (req, res) => {
 
 
-    console.log(linksFile)
-
-
-    // let links = fs.readFileSync(path.join(__dirname + "/../../public/links.txt"), (err, data) => {
-    //     if(err){
-    //         res.json(err)
-    //     }
-    //     console.log('is this what is undefineed', data)
-    //     console.log(data.toString('utf8'))
-    //     return data;
-
-    // });
-
-
-
     res.json(linksFile);
 }
 
 const playYoutube = (req, res) => {
-    console.log(req.body.index)
     bot.playYoutubeSong(req.body.index);
     res.end();
 }
@@ -54,9 +37,6 @@ const resumeYoutube = (req, res) => {
 
 const addYoutubeLink = (req, res) => {
 
-    console.log(req.body)
-
-
     let { link } = req.body;
 
     let result = bot.addYoutubeLink(link);
@@ -73,7 +53,6 @@ const playPrevYoutube = (req, res) => {
 }
 
 const playNextYoutube = (req, res) => {
-    console.log('WAIT WHAT', req.query)
     let index = req.query.index;
     bot.webPlayNext(index);
 }

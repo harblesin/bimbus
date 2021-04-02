@@ -20,7 +20,7 @@ const NowPlaying = props => {
                         <button onClick={() => API.volumeUp()}>Volume Up</button>
                     </div>
                 </div>
-                <img className={styles.img} src={props.song.image}></img>
+                <img className={styles.img} src={props.song.image} alt="Pic" ></img>
 
             </div>
         </div>

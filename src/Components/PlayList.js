@@ -16,7 +16,7 @@ const PlayList = props => {
                             </div>
 
                         </div>
-                        <img className={styles.img} src={l.image}></img>
+                        <img className={styles.img} src={l.image} alt="Pic" ></img>
                     </div>
                 ))}
             </div>
