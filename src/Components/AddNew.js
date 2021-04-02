@@ -18,7 +18,7 @@ const AddNew = props => {
         e.preventDefault();
         let result = await API.addYoutubeLink(link);
         console.log(result.data)
-        if (result === 'no') {
+        if (result.data === 'no') {
             alert("THAT ISN'T A YOUTUBE LINK YOU JERK");
         }
         setLink({ link: '' });

@@ -35,11 +35,11 @@ const resumeYoutube = (req, res) => {
 }
 
 
-const addYoutubeLink = (req, res) => {
+const addYoutubeLink = async (req, res) => {
 
     let { link } = req.body;
 
-    let result = bot.addYoutubeLink(link);
+    let result = await bot.addYoutubeLink(link);
 
     res.json(result);
 
