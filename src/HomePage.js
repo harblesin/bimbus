@@ -75,7 +75,7 @@ class HomePage extends Component {
                         <div className={styles.headerText}>
                             <span className={styles.funnyText}>Corn</span>
                         </div>
-                        <img className={styles.img} src="../../public/q-double.gif" alt="Pic" />
+                        <img className={styles.img} src="../public/q-double.gif" alt="Pic" />
                         <div className={styles.headerText}>
                             <span className={styles.funnyText}>Corner</span>
                         </div>
