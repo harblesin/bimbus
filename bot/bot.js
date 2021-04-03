@@ -114,7 +114,6 @@ client.on('message', async msg => {
         dispatcher.setVolume(msg.content.split(" ")[1])
     }
 
-
     if (msg.content.indexOf("giphy.com") !== -1) {
         msg.reply("You have posted cringe, borther. Deleted.");
         setTimeout(() => {
@@ -122,10 +121,7 @@ client.on('message', async msg => {
         }, 3000)
     }
 
-
-
     if (msg.content === 'play') {
-
 
         if (!dispatcher) {
             msg.reply("Nothing was fucking playing that could be resumed you fucking dumbass")
@@ -134,13 +130,11 @@ client.on('message', async msg => {
 
         dispatcher.resume();
 
-
     } else if (msg.content.split(' ').length === 2 && msg.content.split(" ")[0] === 'play' && msg.content.split(" ")[1].substring(0, 23) === 'https://www.youtube.com') {
 
         dispatcher = connectedChannel.play(ytdl(msg.content.split(' ')[1], { filter: 'audioonly' }));
 
     }
-
 
     if (msg.content === 'pause') {
         dispatcher.pause();
@@ -149,6 +143,15 @@ client.on('message', async msg => {
     if (msg.content === 'funny cat') {
         const image = new MessageAttachment('http://localhost:8080/tumblr_6e6c1e4b54d27fcd445f5ceff12b0c0b_47bdf23f_500.png');
         msg.reply(image)
+    }
+
+    if (msg.content === "clown god") {
+        const imageOne = new MessageAttachment('http://localhost:8080/tumblr_69449ee3f4608eb25866ea5390bd2853_047d4e80_1280.jpg');
+        msg.reply(imageOne)
+        const imageTwo = new MessageAttachment('http://localhost:8080/tumblr_f60bf51d288cc3f78d7561fcb110ff72_fc5e7a0f_1280.jpg');
+        msg.reply(imageTwo);
+        const imageThree = new MessageAttachment('http://localhost:8080/tumblr_1effe81844992dbb96263241b76b1e49_b7d45104_1280.jpg');
+        msg.reply(imageThree);
     }
 });
 
