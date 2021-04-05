@@ -1,15 +1,21 @@
 require("dotenv").config();
 const path = require('path');
+const https = require('https');
 const Discord = require('discord.js');
 const { MessageAttachment, MessageEmbed, PlayInterface } = require('discord.js');
 const fs = require('fs')
 const client = new Discord.Client();
-const ytdl = require('ytdl-core')
+const ytdl = require('ytdl-core');
+const ffmetadata = require('ffmetadata');
 const jsmediatags = require("jsmediatags");
 const FileType = require('file-type');
 const youtubeLinks = require('../public/links.json');
-const e = require("express");
-
+const fetch = require('node-fetch');
+const webp = require('webp-converter');
+webp.grant_permission();
+if (process.env.NODE_ENV !== 'production') {
+    ffmetadata.setFfmpegPath(path.join(__dirname + `../../../../../Music/ffmpeg.exe`))
+}
 
 
 let connectedChannel;
@@ -74,6 +80,8 @@ client.on('message', async msg => {
 
         let song = await playRandomSong();
 
+        console.log(song)
+
         let attachment = new MessageAttachment(song.albumCover, `albumCover.png`)
 
         let nowPlaying = new MessageEmbed()
@@ -87,7 +95,6 @@ client.on('message', async msg => {
             .setFooter(song.album);
 
         msg.reply(nowPlaying)
-
 
         song.dispatcher.on('finish', async () => {
             let song = await playRandomSong();
@@ -111,7 +118,12 @@ client.on('message', async msg => {
     }
 
     if (msg.content.startsWith('volume')) {
-        dispatcher.setVolume(msg.content.split(" ")[1])
+        console.log('hey')
+        dispatcher.setVolume(msg.content.split(" ")[1]);
+
+
+
+        console.log(dispatcher.volume)
     }
 
     if (msg.content.indexOf("giphy.com") !== -1) {
@@ -153,7 +165,110 @@ client.on('message', async msg => {
         const imageThree = new MessageAttachment('http://localhost:8080/tumblr_1effe81844992dbb96263241b76b1e49_b7d45104_1280.jpg');
         msg.reply(imageThree);
     }
+
+
+    if (msg.content.split(" ")[0] === '!download') {
+        let url = msg.content.split(' ')[1];
+        msg.delete();
+        let res = await downloadSong(url).catch(err => console.log(err));
+        console.log(res)
+        msg.reply(res)
+    }
+
+
+    if (msg.content.startsWith('!playlists')) {
+        let dir;
+        if (process.env.NODE_ENV === "production") {
+            dir = path.join(__dirname + "../../../../../../srv/Music/youtube")
+        } else {
+            dir = path.join(__dirname + "../../../../../Music/youtube");
+        }
+        let list = listPlaylists(dir);
+        let newList = [];
+
+        list.forEach((l, index) => {
+            newList.push({ name: index, value: l.name });
+        })
+
+        let res = {
+            title: "PLAYLISTS :)",
+            fields: newList
+        };
+
+        msg.reply({ embed: res })
+
+    }
+
+    if (msg.content.startsWith('!playlist')) {
+        let playlistIndex = msg.content.split(" ")[0];
+
+        let playlist = listPlaylist(playlistIndex);
+        let newList = [];
+
+        playlist.filter(p => p.name !== 'desktop.ini').forEach((l, index) => {
+            newList.push({ name: index, value: l.name });
+        })
+
+        let res = {
+            title: "PLAYLISTS :)",
+            fields: newList
+        };
+
+        msg.reply({ embed: res })
+
+    }
+
+    if (msg.content.startsWith('!play')) {
+        let index = msg.content.split(" ")[1];
+        if (!index) {
+            msg.reply("you have to pick a song dumbass")
+        }
+        let song = await playSong(index);
+
+        let attachment = new MessageAttachment(song.albumCover, `albumCover.jpg`)
+
+        let nowPlaying = new MessageEmbed()
+            .setColor('#ff5e86')
+            .setTitle('Now Playing: ')
+            .addFields(
+                { name: song.title, value: song.artist }
+            )
+            .attachFiles([attachment])
+            .setImage(`attachment://albumCover.jpg`);
+
+        msg.send(nowPlaying)
+
+        song.dispatcher.on('finish', async () => {
+            let song = await playSong(0);
+
+            let attachment = new MessageAttachment(song.albumCover, `albumCover.png`);
+
+            let nowPlaying = new MessageEmbed()
+                .setColor('#ff5e86')
+                .setTitle('Now Playing: ')
+                .addFields(
+                    { name: song.title, value: song.artist }
+                )
+                .attachFiles([attachment])
+                .setImage(`attachment://albumCover.png`)
+                .setFooter(song.album);
+
+            msg.send(nowPlaying)
+
+        })
+
+
+    }
+
 });
+
+listPlaylist = (index) => {
+    return fs.readdirSync(path.join(__dirname + "../../../../../Music/youtube"), { withFileTypes: true }).filter(dirent => !dirent.isDirectory());
+}
+
+listPlaylists = (dir) => {
+    return fs.readdirSync(dir, { withFileTypes: true }).filter(dirent => dirent.isDirectory())
+}
 
 playRandomSong = () => {
 
@@ -171,7 +286,6 @@ playRandomSong = () => {
 
 
             dispatcher = connectedChannel.play('http://localhost:8080/' + song, { volume: .08 });
-
 
             jsmediatags.read('http://localhost:8080/' + song, {
                 onSuccess: async tag => {
@@ -203,7 +317,130 @@ playRandomSong = () => {
             });
         })
 
+    })
+};
+
+
+playSong = async (index) => {
+
+    return new Promise((resolve, reject) => {
+
+        fs.readdir(path.join(__dirname + `../../../../../Music/youtube`), (err, files) => {
+
+            files = files.filter(f => f !== 'desktop.ini');
+
+            if (err) {
+                reject(err);
+            }
+
+            let song = files[index]
+
+            dispatcher = connectedChannel.play('http://localhost:8080/youtube/' + song, { volume: 1 });
+
+            jsmediatags.read('http://localhost:8080/youtube/' + song, {
+                onSuccess: async tag => {
+
+                    let songInfo = {
+                        title: tag.tags.title,
+                        artist: tag.tags.artist,
+                        albumCover: `http://localhost:8080/artwork/${tag.tags.title}.jpg`,
+                        dispatcher
+                    }
+                    return resolve(songInfo)
+                },
+                onError: (error) => {
+                    return reject(error.type, error.info)
+                }
+            });
+        })
+
     }).catch(err => console.log(err))
+}
+
+
+downloadSong = async (url) => {
+
+    return new Promise(async (resolve, reject) => {
+        if (!ytdl.validateURL(url)) {
+            return resolve(`'${url}' is not a valid Youtube Link!`);
+        }
+
+        let info = await ytdl.getInfo(url);
+
+        let artist = info.videoDetails.artist ? info.videoDetails.artist : ' - ';
+        let title = info.videoDetails.title ? info.videoDetails.title : ' - ';
+        let albumArt;
+
+        let data = {
+            artist: artist,
+            title: title
+        }
+
+
+        if (process.env.NODE_ENV === 'production') {
+            ytdl(url, { filter: 'audioonly' }).pipe(fs.createWriteStream(path.join(__dirname + `../../../../../../srv/Music/youtube/${info.videoDetails.title}.mp4`)));
+            ffmetadata.write('http://localhost:8080/youtube/', metadata, albumArt)
+
+
+        } else {
+            getStreamToFile = () => {
+                return new Promise((resolve, reject) => {
+                    let stream = ytdl(url, { filter: 'audioonly' });
+                    stream.pipe(fs.createWriteStream(path.join(__dirname + `../../../../../Music/youtube/${info.videoDetails.title}.mp4`)));
+                    resolve();
+                })
+            }
+
+            saveArt = async (name) => {
+
+                return new Promise(async (resolve, reject) => {
+
+                    const res = await fetch(info.videoDetails.thumbnails[0].url);
+                    const arrBuffer = await res.arrayBuffer();
+                    const buffer = Buffer.from(arrBuffer);
+                    const fileType = await FileType.fromBuffer(buffer);
+
+                    fs.writeFileSync(path.join(__dirname + `../../../../../Music/artwork/${name}.${fileType.ext}`), buffer);
+                    webp.dwebp(path.join(__dirname + `../../../../../Music/artwork/${name}.${fileType.ext}`), path.join(__dirname + `../../../../../Music/artwork/${name}.jpg`), "-o", logging = "-v");
+                    resolve();
+                })
+
+            }
+
+            setMetaData = () => {
+                return new Promise((resolve, reject) => {
+                    console.log("WHAT ABOT HERE");
+
+                    let options = {
+                        attachments: [path.join(__dirname + `../../../../../Music/artwork/${info.videoDetails.title}.jpg`)]
+                    }
+                    ffmetadata.write(path.join(__dirname + `../../../../../Music/youtube/${info.videoDetails.title}.mp4`), data, options, (err) => {
+                        console.log("HERHERHEH")
+                        if (err) {
+                            console.log('897239487234982734987')
+                            console.log(err)
+                            reject(err);
+                        } else {
+                            console.log("(#$)()$(#$)#($)#($)#($")
+                            return resolve(`${info.videoDetails.title} was downloaded!`);
+                        }
+                    })
+                })
+            }
+
+            console.log("HERE")
+
+            await getStreamToFile().catch(err => reject(err));
+            await saveArt(info.videoDetails.title).catch(err => reject(err))
+            console.log("HERE TNUMBER @)")
+            setTimeout(async () => {
+                return resolve(await setMetaData().catch(err => { reject(err) }))
+            }, 1000)
+
+
+        }
+    }).catch(err => { return err })
+
 }
 
 
