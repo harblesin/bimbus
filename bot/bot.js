@@ -78,52 +78,12 @@ client.on('message', async msg => {
 
     if ((msg.content).toLowerCase() === 'play music' || (msg.content).toLowerCase() === 'next') {
 
-        let song = await playRandomSong();
-
-        console.log(song)
-
-        let attachment = new MessageAttachment(song.albumCover, `albumCover.png`)
-
-        let nowPlaying = new MessageEmbed()
-            .setColor('#ff5e86')
-            .setTitle('Now Playing: ')
-            .addFields(
-                { name: song.title, value: song.artist }
-            )
-            .attachFiles([attachment])
-            .setImage(`attachment://albumCover.png`)
-            .setFooter(song.album);
-
-        msg.reply(nowPlaying)
-
-        song.dispatcher.on('finish', async () => {
-            let song = await playRandomSong();
-
-            let attachment = new MessageAttachment(song.albumCover, `albumCover.png`);
-
-            let nowPlaying = new MessageEmbed()
-                .setColor('#ff5e86')
-                .setTitle('Now Playing: ')
-                .addFields(
-                    { name: song.title, value: song.artist }
-                )
-                .attachFiles([attachment])
-                .setImage(`attachment://albumCover.png`)
-                .setFooter(song.album);
-
-            msg.reply(nowPlaying)
-
-        })
+        await playRandomSong(msg);
 
     }
 
     if (msg.content.startsWith('volume')) {
-        console.log('hey')
         dispatcher.setVolume(msg.content.split(" ")[1]);
-
-
-
-        console.log(dispatcher.volume)
     }
 
     if (msg.content.indexOf("giphy.com") !== -1) {
@@ -171,7 +131,6 @@ client.on('message', async msg => {
         let url = msg.content.split(' ')[1];
         msg.delete();
         let res = await downloadSong(url).catch(err => console.log(err));
-        console.log(res)
         msg.reply(res)
     }
 
@@ -270,9 +229,9 @@ listPlaylists = (dir) => {
     return fs.readdirSync(dir, { withFileTypes: true }).filter(dirent => dirent.isDirectory())
 }
 
-playRandomSong = () => {
+playRandomSong = async (msg) => {
 
-    return new Promise((resolve, reject) => {
+    let song = await new Promise((resolve, reject) => {
 
         fs.readdir(path.join(__dirname + `../../../../../Music`), (err, files) => {
 
@@ -283,7 +242,6 @@ playRandomSong = () => {
             }
 
             let song = files[choice]
-
 
             dispatcher = connectedChannel.play('http://localhost:8080/' + song, { volume: .08 });
 
@@ -309,15 +267,34 @@ playRandomSong = () => {
                         songInfo.albumCover = 'http://localhost:8080/placeholder.png';
                         songInfo.albumCoverImageType = 'png'
                     }
-                    resolve(songInfo)
+                    return resolve(songInfo)
                 },
                 onError: (error) => {
-                    reject(error.type, error.info)
+                    return reject(error.type, error.info)
                 }
             });
         })
 
+    });
+
+    let attachment = new MessageAttachment(song.albumCover, `albumCover.png`)
+
+    let nowPlaying = new MessageEmbed()
+        .setColor('#ff5e86')
+        .setTitle('Now Playing: ')
+        .addFields(
+            { name: song.title, value: song.artist }
+        )
+        .attachFiles([attachment])
+        .setImage(`attachment://albumCover.png`)
+        .setFooter(song.album);
+
+    msg.reply(nowPlaying);
+
+    song.dispatcher.on('finish', async () => {
+        await playRandomSong(msg);
     })
+
 };
 
 
@@ -409,30 +386,23 @@ downloadSong = async (url) => {
 
             setMetaData = () => {
                 return new Promise((resolve, reject) => {
-                    console.log("WHAT ABOT HERE");
 
                     let options = {
                         attachments: [path.join(__dirname + `../../../../../Music/artwork/${info.videoDetails.title}.jpg`)]
                     }
                     ffmetadata.write(path.join(__dirname + `../../../../../Music/youtube/${info.videoDetails.title}.mp4`), data, options, (err) => {
-                        console.log("HERHERHEH")
                         if (err) {
-                            console.log('897239487234982734987')
-                            console.log(err)
                             reject(err);
                         } else {
-                            console.log("(#$)()$(#$)#($)#($)#($")
                             return resolve(`${info.videoDetails.title} was downloaded!`);
                         }
                     })
                 })
             }
 
-            console.log("HERE")
-
             await getStreamToFile().catch(err => reject(err));
             await saveArt(info.videoDetails.title).catch(err => reject(err))
-            console.log("HERE TNUMBER @)")
+
             setTimeout(async () => {
                 return resolve(await setMetaData().catch(err => { reject(err) }))
             }, 1000)

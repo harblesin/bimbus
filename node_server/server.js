@@ -13,13 +13,16 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.static(path.join(__dirname, '../build')));
 app.use(express.static(path.join(__dirname + "../public")));
 app.use(express.static(path.join(__dirname + "../../../../../Desktop/")));
-app.use(express.static(path.join(__dirname + "../../../../../Music")))
 app.use(express.static(path.join(__dirname + "../../../../../Videos")))
 
 if (process.env.NODE_ENV === "production") {
     app.use(express.static(path.join(__dirname + "../../../../../../srv/Pictures")));
+    app.use(express.static(path.join(__dirname + "../../../../../../srv/Music")));
+
 } else {
     app.use(express.static(path.join(__dirname + "../../../../../Pictures")));
+    app.use(express.static(path.join(__dirname + "../../../../../Music")))
+
 }
 
 
