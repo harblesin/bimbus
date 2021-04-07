@@ -105,6 +105,7 @@ client.on('message', async msg => {
     } else if (msg.content.split(' ').length === 2 && msg.content.split(" ")[0] === 'play' && msg.content.split(" ")[1].substring(0, 23) === 'https://www.youtube.com') {
 
         dispatcher = connectedChannel.play(ytdl(msg.content.split(' ')[1], { filter: 'audioonly' }));
+        dispatcher.setVolume(.2)
 
     }
 
@@ -222,7 +223,11 @@ client.on('message', async msg => {
 });
 
 listPlaylist = (index) => {
-    return fs.readdirSync(path.join(__dirname + "../../../../../Music/youtube"), { withFileTypes: true }).filter(dirent => !dirent.isDirectory());
+    if (process.env.NODE_ENV === 'production') {
+        return fs.readdirSync(path.join(__dirname + "../../../../../../srv/Music/youtube"), { withFileTypes: true }).filter(dirent => !dirent.isDirectory());
+    } else {
+        return fs.readdirSync(path.join(__dirname + "../../../../../Music/youtube"), { withFileTypes: true }).filter(dirent => !dirent.isDirectory());
+    }
 }
 
 listPlaylists = (dir) => {
@@ -312,7 +317,8 @@ playSong = async (index) => {
 
             let song = files[index]
 
-            dispatcher = connectedChannel.play('http://localhost:8080/youtube/' + song, { volume: 1 });
+            dispatcher = connectedChannel.play('http://localhost:8080/youtube/' + song, { volume: .5 });
+            dispatcher.setVolume(.2)
 
             jsmediatags.read('http://localhost:8080/youtube/' + song, {
                 onSuccess: async tag => {
