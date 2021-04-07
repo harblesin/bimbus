@@ -13,9 +13,8 @@ const youtubeLinks = require('../public/links.json');
 const fetch = require('node-fetch');
 const webp = require('webp-converter');
 webp.grant_permission();
-if (process.env.NODE_ENV !== 'production') {
-    ffmetadata.setFfmpegPath(path.join(__dirname + `../../../../../Music/ffmpeg.exe`))
-}
+ffmetadata.setFfmpegPath(path.join(__dirname + process.env.ROOT_DIR + 'ffmpeg.exe'))
+
 
 
 let connectedChannel;
@@ -136,13 +135,9 @@ client.on('message', async msg => {
     }
 
 
-    if (msg.content.startsWith('!playlists')) {
-        let dir;
-        if (process.env.NODE_ENV === "production") {
-            dir = path.join(__dirname + "../../../../../../srv/Music/youtube")
-        } else {
-            dir = path.join(__dirname + "../../../../../Music/youtube");
-        }
+    if (msg.content.split(' ')[0] === '!playlists') {
+        let dir = path.join(__dirname + process.env.ROOT_DIR + 'youtube');
+
         let list = listPlaylists(dir);
         let newList = [];
 
@@ -159,7 +154,7 @@ client.on('message', async msg => {
 
     }
 
-    if (msg.content.startsWith('!playlist')) {
+    if (msg.content.split(" ")[0] === '!playlist') {
         let playlistIndex = msg.content.split(" ")[0];
 
         let playlist = listPlaylist(playlistIndex);
@@ -178,7 +173,7 @@ client.on('message', async msg => {
 
     }
 
-    if (msg.content.startsWith('!play')) {
+    if (msg.content.split(" ") === '!play') {
         let index = msg.content.split(" ")[1];
         if (!index) {
             msg.reply("you have to pick a song dumbass")
@@ -223,11 +218,7 @@ client.on('message', async msg => {
 });
 
 listPlaylist = (index) => {
-    if (process.env.NODE_ENV === 'production') {
-        return fs.readdirSync(path.join(__dirname + "../../../../../../srv/Music/youtube"), { withFileTypes: true }).filter(dirent => !dirent.isDirectory());
-    } else {
-        return fs.readdirSync(path.join(__dirname + "../../../../../Music/youtube"), { withFileTypes: true }).filter(dirent => !dirent.isDirectory());
-    }
+    return fs.readdirSync(path.join(__dirname + process.env.ROOT_DIR + 'youtube'), { withFileTypes: true }).filter(dirent => !dirent.isDirectory());
 }
 
 listPlaylists = (dir) => {
@@ -238,7 +229,7 @@ playRandomSong = async (msg) => {
 
     let song = await new Promise((resolve, reject) => {
 
-        fs.readdir(path.join(__dirname + `../../../../../Music`), (err, files) => {
+        fs.readdir(path.join(__dirname + process.env.ROOT_DIR), (err, files) => {
 
             let choice = Math.floor((Math.random() * files.length) + 1);
 
@@ -307,7 +298,7 @@ playSong = async (index) => {
 
     return new Promise((resolve, reject) => {
 
-        fs.readdir(path.join(__dirname + `../../../../../Music/youtube`), (err, files) => {
+        fs.readdir(path.join(__dirname + process.env.ROOT_DIR + 'youtube'), (err, files) => {
 
             files = files.filter(f => f !== 'desktop.ini');
 
@@ -359,62 +350,55 @@ downloadSong = async (url) => {
             title: title
         }
 
+        getStreamToFile = () => {
+            return new Promise((resolve, reject) => {
+                let stream = ytdl(url, { filter: 'audioonly' });
+                stream.pipe(fs.createWriteStream(path.join(__dirname + `${process.env.ROOT_DIR}youtube/${info.videoDetails.title}.mp4`)));
+                resolve();
+            })
+        }
 
-        if (process.env.NODE_ENV === 'production') {
-            ytdl(url, { filter: 'audioonly' }).pipe(fs.createWriteStream(path.join(__dirname + `../../../../../../srv/Music/youtube/${info.videoDetails.title}.mp4`)));
-            ffmetadata.write('http://localhost:8080/youtube/', metadata, albumArt)
+        saveArt = async (name) => {
 
+            return new Promise(async (resolve, reject) => {
 
-        } else {
-            getStreamToFile = () => {
-                return new Promise((resolve, reject) => {
-                    let stream = ytdl(url, { filter: 'audioonly' });
-                    stream.pipe(fs.createWriteStream(path.join(__dirname + `../../../../../Music/youtube/${info.videoDetails.title}.mp4`)));
-                    resolve();
-                })
-            }
+                const res = await fetch(info.videoDetails.thumbnails[0].url);
+                const arrBuffer = await res.arrayBuffer();
+                const buffer = Buffer.from(arrBuffer);
+                const fileType = await FileType.fromBuffer(buffer);
 
-            saveArt = async (name) => {
-
-                return new Promise(async (resolve, reject) => {
-
-                    const res = await fetch(info.videoDetails.thumbnails[0].url);
-                    const arrBuffer = await res.arrayBuffer();
-                    const buffer = Buffer.from(arrBuffer);
-                    const fileType = await FileType.fromBuffer(buffer);
-
-                    fs.writeFileSync(path.join(__dirname + `../../../../../Music/artwork/${name}.${fileType.ext}`), buffer);
-                    webp.dwebp(path.join(__dirname + `../../../../../Music/artwork/${name}.${fileType.ext}`), path.join(__dirname + `../../../../../Music/artwork/${name}.jpg`), "-o", logging = "-v");
-                    resolve();
-                })
-
-            }
-
-            setMetaData = () => {
-                return new Promise((resolve, reject) => {
-
-                    let options = {
-                        attachments: [path.join(__dirname + `../../../../../Music/artwork/${info.videoDetails.title}.jpg`)]
-                    }
-                    ffmetadata.write(path.join(__dirname + `../../../../../Music/youtube/${info.videoDetails.title}.mp4`), data, options, (err) => {
-                        if (err) {
-                            reject(err);
-                        } else {
-                            return resolve(`${info.videoDetails.title} was downloaded!`);
-                        }
-                    })
-                })
-            }
-
-            await getStreamToFile().catch(err => reject(err));
-            await saveArt(info.videoDetails.title).catch(err => reject(err))
-
-            setTimeout(async () => {
-                return resolve(await setMetaData().catch(err => { reject(err) }))
-            }, 1000)
-
+                fs.writeFileSync(path.join(__dirname + process.env.ROOT_DIR + `artwork/${name}.${fileType.ext}`), buffer);
+                webp.dwebp(path.join(__dirname + process.env.ROOT_DIR + `artwork/${name}.${fileType.ext}`), path.join(__dirname + process.env.ROOT_DIR + `artwork/${name}.jpg`), "-o", logging = "-v");
+                resolve();
+            })
 
         }
+
+        setMetaData = () => {
+            return new Promise((resolve, reject) => {
+
+                let options = {
+                    attachments: [path.join(__dirname + process.env.ROOT_DIR + `artwork/${info.videoDetails.title}.jpg`)]
+                }
+                ffmetadata.write(path.join(__dirname + process.env.ROOT_DIR + `youtube/${info.videoDetails.title}.mp4`), data, options, (err) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        return resolve(`${info.videoDetails.title} was downloaded!`);
+                    }
+                })
+            })
+        }
+
+        await getStreamToFile().catch(err => reject(err));
+        await saveArt(info.videoDetails.title).catch(err => reject(err))
+
+        setTimeout(async () => {
+            return resolve(await setMetaData().catch(err => { reject(err) }))
+        }, 1000)
+
+
+
     }).catch(err => { return err })
 
 }
