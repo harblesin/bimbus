@@ -13,7 +13,9 @@ const youtubeLinks = require('../public/links.json');
 const fetch = require('node-fetch');
 const webp = require('webp-converter');
 webp.grant_permission();
-ffmetadata.setFfmpegPath(path.join(__dirname + process.env.ROOT_DIR + 'ffmpeg.exe'))
+if (process.env.NODE_ENV !== 'production') {
+    ffmetadata.setFfmpegPath(path.join(__dirname + process.env.ROOT_DIR + 'ffmpeg.exe'))
+}
 
 
 
