@@ -7,17 +7,15 @@ const fs = require('fs')
 const client = new Discord.Client();
 const ytdl = require('ytdl-core');
 const ffmetadata = require('ffmetadata');
-const jsmediatags = require("jsmediatags");
 const FileType = require('file-type');
 const youtubeLinks = require('../public/links.json');
 const fetch = require('node-fetch');
 const webp = require('webp-converter');
+const botFunc = require("./botFunc");
 webp.grant_permission();
 if (process.env.NODE_ENV !== 'production') {
     ffmetadata.setFfmpegPath(path.join(__dirname + process.env.ROOT_DIR + 'ffmpeg.exe'))
 }
-
-
 
 let connectedChannel;
 let dispatcher;
@@ -31,101 +29,61 @@ client.on('ready', () => {
 });
 
 client.on('message', async msg => {
-
-    if (msg.content === 'join') {
-        connectedChannel = await msg.member.voice.channel.join();
-    }
-
-    if (msg.content === 'bot') {
-
-        msg.reply("You think youre so fucking funny don't you, suck my fat ass")
-    }
-
-    if (msg.content === 'random pic') {
-        fs.readdir(path.join(__dirname + `../../../../../Pictures`), (err, files) => {
-
-            let choice = Math.floor((Math.random() * files.length) + 1);
-
-            if (err) {
-                throw err;
+    const msgSplit = msg.content.split(' ');
+    const firstWord = msgSplit[0].toLowerCase();
+    const secondWord = msgSplit[1] ? msgSplit[1].toLowerCase() : '';
+    switch (firstWord) {
+        case 'join':
+            connectedChannel = await msg.member.voice.channel.join();
+            break;
+        case 'bot':
+            msg.reply("You think youre so fucking funny don't you, suck my fat ass");
+            break;
+        case 'random pic':
+            let file = await botFunc.getRandomPic();
+            let image = new MessageAttachment('http://localhost:8080/' + file);
+            msg.reply(image);
+            break;
+        case 'play':
+            if (!dispatcher) {
+                msg.reply("Nothing was fucking playing that could be resumed you fucking dumbass")
+                return;
             }
-
-            const image = new MessageAttachment('http://localhost:8080/' + files[choice]);
-
-            msg.reply(image)
-
-        })
-    }
-
-    if (msg.content === "play movie") {
-        fs.readdir(path.join(__dirname + `../../../../../Videos`), (err, files) => {
-
-            let choice = Math.floor((Math.random() * files.length) + 1);
-
-            if (err) {
-                throw err;
+            let res = await botFunc.validatePlayType(secondWord, dispatcher);
+            if (secondWord === 'music' || secondWord === 'next') {
+                dispatcher = connectedChannel.play('http://localhost:8080/' + res.songInfo.song, { volume: .08 });
+                msg.reply(res.embed);
+            } else if (ytdl.validateURL(secondWord)) {
+                dispatcher = connectedChannel.play(ytdl(msg.content.split(' ')[1], { filter: 'audioonly' }));
+                dispatcher.setVolume(.2)
+            } else {
+                resume();
             }
-
-            const image = new MessageAttachment('http://localhost:8080/' + 'Home\ Movies\ -\ S1E01\ -\ Get\ Away\ From\ My\ Mom.avi');
-
-            msg.channel.send({
-                files: [
-                    'http://localhost:8080/' + 'Home\ Movies\ -\ S1E01\ -\ Get\ Away\ From\ My\ Mom.avi'
-                ]
-            })
-
-        })
-    }
-
-    if ((msg.content).toLowerCase() === 'play music' || (msg.content).toLowerCase() === 'next') {
-
-        await playRandomSong(msg);
-
-    }
-
-    if (msg.content.startsWith('volume')) {
-        dispatcher.setVolume(msg.content.split(" ")[1]);
-    }
-
-    if (msg.content.indexOf("giphy.com") !== -1) {
-        msg.reply("You have posted cringe, borther. Deleted.");
-        setTimeout(() => {
-            msg.delete()
-        }, 3000)
-    }
-
-    if (msg.content === 'play') {
-
-        if (!dispatcher) {
-            msg.reply("Nothing was fucking playing that could be resumed you fucking dumbass")
-            return;
-        }
-
-        dispatcher.resume();
-
-    } else if (msg.content.split(' ').length === 2 && msg.content.split(" ")[0] === 'play' && msg.content.split(" ")[1].substring(0, 23) === 'https://www.youtube.com') {
-
-        dispatcher = connectedChannel.play(ytdl(msg.content.split(' ')[1], { filter: 'audioonly' }));
-        dispatcher.setVolume(.2)
-
-    }
-
-    if (msg.content === 'pause') {
-        dispatcher.pause();
-    }
-
-    if (msg.content === 'funny cat') {
-        const image = new MessageAttachment('http://localhost:8080/tumblr_6e6c1e4b54d27fcd445f5ceff12b0c0b_47bdf23f_500.png');
-        msg.reply(image)
-    }
-
-    if (msg.content === "clown god") {
-        const imageOne = new MessageAttachment('http://localhost:8080/tumblr_69449ee3f4608eb25866ea5390bd2853_047d4e80_1280.jpg');
-        msg.reply(imageOne)
-        const imageTwo = new MessageAttachment('http://localhost:8080/tumblr_f60bf51d288cc3f78d7561fcb110ff72_fc5e7a0f_1280.jpg');
-        msg.reply(imageTwo);
-        const imageThree = new MessageAttachment('http://localhost:8080/tumblr_1effe81844992dbb96263241b76b1e49_b7d45104_1280.jpg');
-        msg.reply(imageThree);
+            break;
+        case 'pause':
+            dispatcher.pause();
+            break;
+        case 'funny cat':
+            let image = new MessageAttachment('http://localhost:8080/tumblr_6e6c1e4b54d27fcd445f5ceff12b0c0b_47bdf23f_500.png');
+            msg.reply(image);
+            break;
+        case "clown god":
+            const imageOne = new MessageAttachment('http://localhost:8080/tumblr_69449ee3f4608eb25866ea5390bd2853_047d4e80_1280.jpg');
+            msg.reply(imageOne)
+            const imageTwo = new MessageAttachment('http://localhost:8080/tumblr_f60bf51d288cc3f78d7561fcb110ff72_fc5e7a0f_1280.jpg');
+            msg.reply(imageTwo);
+            const imageThree = new MessageAttachment('http://localhost:8080/tumblr_1effe81844992dbb96263241b76b1e49_b7d45104_1280.jpg');
+            msg.reply(imageThree);
+            break;
+        case 'volume':
+            dispatcher.setVolume(secondWord);
+            break;
+        case 'giphy.com':
+            msg.reply("You have posted cringe, borther. Deleted.");
+            setTimeout(() => {
+                msg.delete()
+            }, 3000)
+            break;
     }
 
 
@@ -241,12 +199,13 @@ playRandomSong = async (msg) => {
 
             let song = files[choice]
 
-            dispatcher = connectedChannel.play('http://localhost:8080/' + song, { volume: .08 });
+            // dispatcher = connectedChannel.play('http://localhost:8080/' + song, { volume: .08 });
 
             jsmediatags.read('http://localhost:8080/' + song, {
                 onSuccess: async tag => {
 
                     let songInfo = {
+                        song,
                         title: tag.tags.title,
                         artist: tag.tags.artist,
                         albumCover: '',
