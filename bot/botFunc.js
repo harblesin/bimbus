@@ -114,6 +114,8 @@ validatePlayType = (secondWord, dispatcher) => {
             let songInfo = await getRandomSong();
             let embed = await createMessageEmbed(songInfo);
             resolve({ songInfo, embed })
+        } else {
+            resolve(secondWord)
         }
     })
 

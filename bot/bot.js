@@ -41,21 +41,21 @@ client.on('message', async msg => {
             break;
         case 'random pic':
             let file = await botFunc.getRandomPic();
-            let image = new MessageAttachment('http://localhost:8080/' + file);
+            let image = new MessageAttachment(`http://localhost:${process.env.NODE_ENV}/` + file);
             msg.reply(image);
             break;
         case 'play':
-            if (!dispatcher) {
-                msg.reply("Nothing was fucking playing that could be resumed you fucking dumbass")
-                return;
-            }
+            // if (!dispatcher) {
+            //     msg.reply("Nothing was fucking playing that could be resumed you fucking dumbass")
+            //     return;
+            // }
             let res = await botFunc.validatePlayType(secondWord, dispatcher);
             if (secondWord === 'music' || secondWord === 'next') {
-                dispatcher = connectedChannel.play('http://localhost:8080/' + res.songInfo.song, { volume: .08 });
+                dispatcher = connectedChannel.play('http://localhost:8080/' + res.songInfo.song, { volume: .04 });
                 msg.reply(res.embed);
             } else if (ytdl.validateURL(secondWord)) {
                 dispatcher = connectedChannel.play(ytdl(msg.content.split(' ')[1], { filter: 'audioonly' }));
-                dispatcher.setVolume(.2)
+                dispatcher.setVolume(.04)
             } else {
                 resume();
             }
@@ -63,10 +63,10 @@ client.on('message', async msg => {
         case 'pause':
             dispatcher.pause();
             break;
-        case 'funny cat':
-            let image = new MessageAttachment('http://localhost:8080/tumblr_6e6c1e4b54d27fcd445f5ceff12b0c0b_47bdf23f_500.png');
-            msg.reply(image);
-            break;
+        // case 'funny cat':
+        //     let image = new MessageAttachment('http://localhost:8080/tumblr_6e6c1e4b54d27fcd445f5ceff12b0c0b_47bdf23f_500.png');
+        //     msg.reply(image);
+        //     break;
         case "clown god":
             const imageOne = new MessageAttachment('http://localhost:8080/tumblr_69449ee3f4608eb25866ea5390bd2853_047d4e80_1280.jpg');
             msg.reply(imageOne)
@@ -76,6 +76,10 @@ client.on('message', async msg => {
             msg.reply(imageThree);
             break;
         case 'volume':
+            if (parseFloat(secondWord) > 1) {
+                msg.reply("DON'T BE A FUCKING DICK");
+                break;
+            }
             dispatcher.setVolume(secondWord);
             break;
         case 'giphy.com':
