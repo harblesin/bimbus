@@ -32,8 +32,17 @@ client.on('message', async msg => {
     const msgSplit = msg.content.split(' ');
     const firstWord = msgSplit[0].toLowerCase();
     const secondWord = msgSplit[1] ? msgSplit[1].toLowerCase() : '';
+    let image;
+    console.log(firstWord)
+    ///
+    //
+    ///
+    //        Yeah, adjustments need to be made to compensate for multi word commands. Splt doesn't work with everything.
+    ///
+    //
+    ///
     switch (firstWord) {
-        case 'join':
+        case 'cmere':
             connectedChannel = await msg.member.voice.channel.join();
             break;
         case 'bot':
@@ -41,14 +50,14 @@ client.on('message', async msg => {
             break;
         case 'random pic':
             let file = await botFunc.getRandomPic();
-            let image = new MessageAttachment(`http://localhost:${process.env.NODE_ENV}/` + file);
+            image = new MessageAttachment(`http://localhost:${process.env.NODE_ENV}/` + file);
             msg.reply(image);
             break;
         case 'play':
-            // if (!dispatcher) {
-            //     msg.reply("Nothing was fucking playing that could be resumed you fucking dumbass")
-            //     return;
-            // }
+            if (!dispatcher) {
+                msg.reply("Nothing was fucking playing that could be resumed you fucking dumbass")
+                return;
+            }
             let res = await botFunc.validatePlayType(secondWord, dispatcher);
             if (secondWord === 'music' || secondWord === 'next') {
                 dispatcher = connectedChannel.play('http://localhost:8080/' + res.songInfo.song, { volume: .04 });
@@ -63,10 +72,11 @@ client.on('message', async msg => {
         case 'pause':
             dispatcher.pause();
             break;
-        // case 'funny cat':
-        //     let image = new MessageAttachment('http://localhost:8080/tumblr_6e6c1e4b54d27fcd445f5ceff12b0c0b_47bdf23f_500.png');
-        //     msg.reply(image);
-        //     break;
+        case 'funny cat':
+            console.log("Hello?")
+            image = new MessageAttachment('http://localhost:8080/tumblr_6e6c1e4b54d27fcd445f5ceff12b0c0b_47bdf23f_500.png');
+            msg.reply(image);
+            break;
         case "clown god":
             const imageOne = new MessageAttachment('http://localhost:8080/tumblr_69449ee3f4608eb25866ea5390bd2853_047d4e80_1280.jpg');
             msg.reply(imageOne)
