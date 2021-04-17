@@ -41,6 +41,7 @@ client.on('message', async msg => {
     ///
     //
     ///
+    let res = await botFunc.validatePlayType(secondWord, dispatcher);
     switch (firstWord) {
         case 'cmere':
             connectedChannel = await msg.member.voice.channel.join();
@@ -53,14 +54,26 @@ client.on('message', async msg => {
             image = new MessageAttachment(`http://localhost:${process.env.NODE_ENV}/` + file);
             msg.reply(image);
             break;
+        case 'next':
+
+            dispatcher = connectedChannel.play('http://localhost:8080/' + res.songInfo.song, { volume: 1 });
+            msg.reply(res.embed);
         case 'play':
-            if (!dispatcher) {
-                msg.reply("Nothing was fucking playing that could be resumed you fucking dumbass")
-                return;
-            }
-            let res = await botFunc.validatePlayType(secondWord, dispatcher);
-            if (secondWord === 'music' || secondWord === 'next') {
-                dispatcher = connectedChannel.play('http://localhost:8080/' + res.songInfo.song, { volume: .04 });
+
+            console.log("here's the second", secondWord)
+
+
+
+            // if (!dispatcher) {
+            //     msg.reply("Nothing was fucking playing that could be resumed you fucking dumbass")
+            //     return;
+            // }
+            // let res = await botFunc.validatePlayType(secondWord, dispatcher);
+            if (secondWord === 'music') {
+                dispatcher = connectedChannel.play('http://localhost:8080/' + res.songInfo.song, { volume: 1 });
+                dispatcher.on('finish', async () => {
+                    dispatcher = connectedChannel.play('http://localhost:8080/' + await botFunc('music', dispatcher));
+                })
                 msg.reply(res.embed);
             } else if (ytdl.validateURL(secondWord)) {
                 dispatcher = connectedChannel.play(ytdl(msg.content.split(' ')[1], { filter: 'audioonly' }));
@@ -86,7 +99,7 @@ client.on('message', async msg => {
             msg.reply(imageThree);
             break;
         case 'volume':
-            if (parseFloat(secondWord) > 1) {
+            if (parseFloat(secondWord) > 2) {
                 msg.reply("DON'T BE A FUCKING DICK");
                 break;
             }

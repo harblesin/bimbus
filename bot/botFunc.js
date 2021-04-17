@@ -110,7 +110,8 @@ getRandomSong = () => {
 
 validatePlayType = (secondWord, dispatcher) => {
     return new Promise(async (resolve, reject) => {
-        if (secondWord === 'music') {
+        if (secondWord === 'music' || !secondWord) {
+            console.log('hey dude')
             let songInfo = await getRandomSong();
             let embed = await createMessageEmbed(songInfo);
             resolve({ songInfo, embed })
