@@ -92,13 +92,14 @@ getSongFromPlaylist = async (index) => {
                 reject(err);
             }
 
-            let fileName = files[index]
+            let fileName = files[index];
+            let albumFile = fileName.split('.mp4').join('');
             let songInfo = {
                 fileName,
                 title: fileName,
                 artist: ' - ',
                 album: ' - ',
-                albumCover: `http://localhost:${process.env.NODE_SERVER_PORT}/artwork/${fileName}.jpg`,
+                albumCover: `http://localhost:${process.env.NODE_SERVER_PORT}/artwork/${albumFile}.jpg`,
             }
             return resolve(songInfo)
 
