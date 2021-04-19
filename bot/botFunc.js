@@ -93,24 +93,13 @@ getSongFromPlaylist = async (index) => {
             }
 
             let fileName = files[index]
+            let songInfo = {
+                fileName,
+                albumCover: `http://localhost:${process.env.NODE_SERVER_PORT}/artwork/${fileName}.jpg`,
+            }
+            return resolve(songInfo)
 
-
-            jsmediatags.read(path.join(__dirname + process.env.ROOT_DIR + `youtube/${fileName}`), {
-                onSuccess: async tag => {
-
-                    let songInfo = {
-                        fileName,
-                        title: tag.tags.title,
-                        artist: tag.tags.artist,
-                        albumCover: `http://localhost:${process.env.NODE_SERVER_PORT}/artwork/${tag.tags.title}.jpg`,
-                    }
-                    return resolve(songInfo)
-                },
-                onError: (error) => {
-                    return reject(error.type, error.info)
-                }
-            });
-        })
+        });
 
     }).catch(err => console.log(err))
 }
