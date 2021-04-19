@@ -96,8 +96,8 @@ getSongFromPlaylist = async (index) => {
             let songInfo = {
                 fileName,
                 title: fileName,
-                artist: '',
-                album: '',
+                artist: ' - ',
+                album: ' - ',
                 albumCover: `http://localhost:${process.env.NODE_SERVER_PORT}/artwork/${fileName}.jpg`,
             }
             return resolve(songInfo)
