@@ -95,7 +95,7 @@ getSongFromPlaylist = async (index) => {
             let fileName = files[index]
 
 
-            jsmediatags.read(path.join(__dirname + process.env.ROOT_DIR + `youtube/${fileName}`, {
+            jsmediatags.read(path.join(__dirname + process.env.ROOT_DIR + `youtube/${fileName}`), {
                 onSuccess: async tag => {
 
                     let songInfo = {
