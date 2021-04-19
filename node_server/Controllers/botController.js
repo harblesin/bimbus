@@ -2,25 +2,18 @@ const bot = require("../../bot/bot");
 const fs = require('fs');
 const path = require('path');
 const linksFile = require("../../public/links.json");
-// const linksFile = require('../../public/links.txt');
-
-
 
 const play = (req, res) => {
-
     bot.webPlaySong();
     res.end()
 }
 
-
 const getLinks = async (req, res) => {
-
-
     res.json(linksFile);
 }
 
 const playYoutube = (req, res) => {
-    bot.playYoutubeSong(req.body.index);
+    bot.webPlayYoutubeSong(req.body.index);
     res.end();
 }
 
@@ -34,20 +27,16 @@ const resumeYoutube = (req, res) => {
     res.end();
 }
 
-
 const addYoutubeLink = async (req, res) => {
 
     let { link } = req.body;
-
     let result = await bot.addYoutubeLink(link);
 
     res.json(result);
-
 }
 
 const playPrevYoutube = (req, res) => {
     let index = req.query.index;
-
 
     bot.webPlayPrevious(index);
 }

@@ -1,210 +1,160 @@
 require("dotenv").config();
 const path = require('path');
-const https = require('https');
 const Discord = require('discord.js');
-const { MessageAttachment, MessageEmbed, PlayInterface } = require('discord.js');
+const youtubeLinks = require('../public/links.json');
+const { MessageAttachment, MessageEmbed } = require('discord.js');
 const fs = require('fs')
 const client = new Discord.Client();
 const ytdl = require('ytdl-core');
 const ffmetadata = require('ffmetadata');
 const FileType = require('file-type');
-const youtubeLinks = require('../public/links.json');
 const fetch = require('node-fetch');
 const webp = require('webp-converter');
 const botFunc = require("./botFunc");
 webp.grant_permission();
 if (process.env.NODE_ENV !== 'production') {
-    ffmetadata.setFfmpegPath(path.join(__dirname + process.env.ROOT_DIR + 'ffmpeg.exe'))
+    ffmetadata.setFfmpegPath(path.join(__dirname + process.env.ROOT_DIR + '/ffmpeg/ffmpeg.exe'))
 }
 
 let connectedChannel;
+let commandChannel;
 let dispatcher;
 let nowPlayingIndex;
+let volume = .06;
 
 client.on('ready', () => {
     client.channels.fetch('319404366518026240').then(async channel => {
         connectedChannel = await channel.join();
-
     })
 });
 
 client.on('message', async msg => {
-    const msgSplit = msg.content.split(' ');
-    const firstWord = msgSplit[0].toLowerCase();
-    const secondWord = msgSplit[1] ? msgSplit[1].toLowerCase() : '';
-    let image;
-    console.log(firstWord)
-    ///
-    //
-    ///
-    //        Yeah, adjustments need to be made to compensate for multi word commands. Splt doesn't work with everything.
-    ///
-    //
-    ///
-    let res = await botFunc.validatePlayType(secondWord, dispatcher);
-    switch (firstWord) {
-        case 'cmere':
-            connectedChannel = await msg.member.voice.channel.join();
-            break;
-        case 'bot':
-            msg.reply("You think youre so fucking funny don't you, suck my fat ass");
-            break;
-        case 'random pic':
-            let file = await botFunc.getRandomPic();
-            image = new MessageAttachment(`http://localhost:${process.env.NODE_ENV}/` + file);
-            msg.reply(image);
-            break;
-        case 'next':
 
-            dispatcher = connectedChannel.play('http://localhost:8080/' + res.songInfo.song, { volume: 1 });
-            msg.reply(res.embed);
-        case 'play':
+    if (msg.content[0] !== '!' || msg.author.username === 'Bimbus') {
+        return;
+    } else {
 
-            console.log("here's the second", secondWord)
+        const msgSplit = msg.content.split(' ');
+        const firstWord = msgSplit[0].toLowerCase();
+        const secondWord = msgSplit[1] ? msgSplit[1].toLowerCase() : '';
+        let image;
 
+        switch (firstWord) {
 
-
-            // if (!dispatcher) {
-            //     msg.reply("Nothing was fucking playing that could be resumed you fucking dumbass")
-            //     return;
-            // }
-            // let res = await botFunc.validatePlayType(secondWord, dispatcher);
-            if (secondWord === 'music') {
-                dispatcher = connectedChannel.play('http://localhost:8080/' + res.songInfo.song, { volume: 1 });
-                dispatcher.on('finish', async () => {
-                    dispatcher = connectedChannel.play('http://localhost:8080/' + await botFunc('music', dispatcher));
-                })
-                msg.reply(res.embed);
-            } else if (ytdl.validateURL(secondWord)) {
-                dispatcher = connectedChannel.play(ytdl(msg.content.split(' ')[1], { filter: 'audioonly' }));
-                dispatcher.setVolume(.04)
-            } else {
-                resume();
-            }
-            break;
-        case 'pause':
-            dispatcher.pause();
-            break;
-        case 'funny cat':
-            console.log("Hello?")
-            image = new MessageAttachment('http://localhost:8080/tumblr_6e6c1e4b54d27fcd445f5ceff12b0c0b_47bdf23f_500.png');
-            msg.reply(image);
-            break;
-        case "clown god":
-            const imageOne = new MessageAttachment('http://localhost:8080/tumblr_69449ee3f4608eb25866ea5390bd2853_047d4e80_1280.jpg');
-            msg.reply(imageOne)
-            const imageTwo = new MessageAttachment('http://localhost:8080/tumblr_f60bf51d288cc3f78d7561fcb110ff72_fc5e7a0f_1280.jpg');
-            msg.reply(imageTwo);
-            const imageThree = new MessageAttachment('http://localhost:8080/tumblr_1effe81844992dbb96263241b76b1e49_b7d45104_1280.jpg');
-            msg.reply(imageThree);
-            break;
-        case 'volume':
-            if (parseFloat(secondWord) > 2) {
-                msg.reply("DON'T BE A FUCKING DICK");
+            case '!cmere':
+                connectedChannel = await msg.member.voice.channel.join();
                 break;
-            }
-            dispatcher.setVolume(secondWord);
-            break;
-        case 'giphy.com':
-            msg.reply("You have posted cringe, borther. Deleted.");
-            setTimeout(() => {
-                msg.delete()
-            }, 3000)
-            break;
-    }
 
+            case '!bot':
+                msg.reply("You think youre so fucking funny don't you, suck my fat ass");
+                break;
 
-    if (msg.content.split(" ")[0] === '!download') {
-        let url = msg.content.split(' ')[1];
-        msg.delete();
-        let res = await downloadSong(url).catch(err => console.log(err));
-        msg.reply(res)
-    }
+            case '!randompic':
+                let file = await botFunc.getRandomPic();
+                image = new MessageAttachment(`http://localhost:${process.env.NODE_SERVER_PORT}/` + file);
+                msg.reply(image);
+                break;
 
+            case '!next':
+                if (commandChannel && msg.channel.id !== commandChannel) {
+                    msg.channel.send("Please enter music commands in the correct channel!");
+                    return;
+                }
+                playRandomSong(msg);
+                break;
 
-    if (msg.content.split(' ')[0] === '!playlists') {
-        let dir = path.join(__dirname + process.env.ROOT_DIR + 'youtube');
+            case '!play':
+                if (commandChannel && msg.channel.id !== commandChannel) {
+                    msg.channel.send("Please enter music commands in the correct channel!");
+                    return;
+                }
+                if (secondWord) {
+                    if (ytdl.validateURL(secondWord)) {
+                        playYoutubeSong(secondWord);
+                    } else if (typeof parseInt(secondWord, 10) === 'number') {
+                        playSongFromPlaylist(secondWord, msg)
+                    }
+                } else if (!dispatcher) {
+                    commandChannel = msg.channel.id;
+                    playRandomSong(msg);
+                } else {
+                    dispatcher.resume();
+                }
+                break;
 
-        let list = listPlaylists(dir);
-        let newList = [];
+            case '!pause':
+                dispatcher.pause();
+                break;
 
-        list.forEach((l, index) => {
-            newList.push({ name: index, value: l.name });
-        })
+            case '!funnycat':
+                image = new MessageAttachment(`http://localhost:${process.env.NODE_SERVER_PORT}/tumblr_6e6c1e4b54d27fcd445f5ceff12b0c0b_47bdf23f_500.png`);
+                msg.reply(image);
+                break;
 
-        let res = {
-            title: "PLAYLISTS :)",
-            fields: newList
-        };
+            case "!clowngod":
+                const imageOne = new MessageAttachment(`http://localhost:${process.env.NODE_SERVER_PORT}/tumblr_69449ee3f4608eb25866ea5390bd2853_047d4e80_1280.jpg`);
+                msg.reply(imageOne)
+                const imageTwo = new MessageAttachment(`http://localhost:${process.env.NODE_SERVER_PORT}/tumblr_f60bf51d288cc3f78d7561fcb110ff72_fc5e7a0f_1280.jpg`);
+                msg.reply(imageTwo);
+                const imageThree = new MessageAttachment(`http://localhost:${process.env.NODE_SERVER_PORT}/tumblr_1effe81844992dbb96263241b76b1e49_b7d45104_1280.jpg`);
+                msg.reply(imageThree);
+                break;
 
-        msg.reply({ embed: res })
+            case '!volume':
+                if (parseFloat(secondWord) > 2) {
+                    msg.reply("DON'T BE A FUCKING DICK");
+                    break;
+                } else if (!secondWord) {
+                    msg.reply(`Current volume is: ${volume}`);
+                    return;
+                }
+                volume = secondWord
+                dispatcher.setVolume(secondWord);
+                break;
 
-    }
+            case 'giphy.com':
+                msg.reply("You have posted cringe, borther. Deleted.");
+                setTimeout(() => {
+                    msg.delete()
+                }, 3000)
+                break;
 
-    if (msg.content.split(" ")[0] === '!playlist') {
-        let playlistIndex = msg.content.split(" ")[0];
+            case '!download':
+                let url = msg.content.split(' ')[1];
+                msg.delete();
+                let res = await downloadSong(url).catch(err => console.log(err));
+                msg.reply(res);
+                break;
 
-        let playlist = listPlaylist(playlistIndex);
-        let newList = [];
+            case '!playlist':
+                let playlistIndex = msg.content.split(" ")[0];
+                let playlist = listPlaylist(playlistIndex);
+                let trackList = '';
+                playlist.filter(p => p.name !== 'desktop.ini').forEach((l, index) => {
+                    trackList = trackList + `\n ${index} - ${l.name}`
+                });
 
-        playlist.filter(p => p.name !== 'desktop.ini').forEach((l, index) => {
-            newList.push({ name: index, value: l.name });
-        })
+                msg.reply({ embed: { title: 'Song List >:)', footer: { text: trackList, icon_url: '' } } });
+                break;
 
-        let res = {
-            title: "PLAYLISTS :)",
-            fields: newList
-        };
-
-        msg.reply({ embed: res })
-
-    }
-
-    if (msg.content.split(" ") === '!play') {
-        let index = msg.content.split(" ")[1];
-        if (!index) {
-            msg.reply("you have to pick a song dumbass")
+            case '!playlists':
+                let dir = path.join(__dirname + process.env.ROOT_DIR + 'youtube');
+                let list = listPlaylists(dir);
+                let newList = [];
+                list.forEach((l, index) => {
+                    newList.push({ name: index, value: l.name });
+                })
+                let playListsDisplay = {
+                    title: "PLAYLISTS :)",
+                    fields: playListsDisplay
+                };
+                msg.reply({ embed: res });
+                break;
         }
-        let song = await playSong(index);
-
-        let attachment = new MessageAttachment(song.albumCover, `albumCover.jpg`)
-
-        let nowPlaying = new MessageEmbed()
-            .setColor('#ff5e86')
-            .setTitle('Now Playing: ')
-            .addFields(
-                { name: song.title, value: song.artist }
-            )
-            .attachFiles([attachment])
-            .setImage(`attachment://albumCover.jpg`);
-
-        msg.send(nowPlaying)
-
-        song.dispatcher.on('finish', async () => {
-            let song = await playSong(0);
-
-            let attachment = new MessageAttachment(song.albumCover, `albumCover.png`);
-
-            let nowPlaying = new MessageEmbed()
-                .setColor('#ff5e86')
-                .setTitle('Now Playing: ')
-                .addFields(
-                    { name: song.title, value: song.artist }
-                )
-                .attachFiles([attachment])
-                .setImage(`attachment://albumCover.png`)
-                .setFooter(song.album);
-
-            msg.send(nowPlaying)
-
-        })
-
-
     }
-
 });
 
-listPlaylist = (index) => {
+listPlaylist = () => {
     return fs.readdirSync(path.join(__dirname + process.env.ROOT_DIR + 'youtube'), { withFileTypes: true }).filter(dirent => !dirent.isDirectory());
 }
 
@@ -213,110 +163,38 @@ listPlaylists = (dir) => {
 }
 
 playRandomSong = async (msg) => {
-
-    let song = await new Promise((resolve, reject) => {
-
-        fs.readdir(path.join(__dirname + process.env.ROOT_DIR), (err, files) => {
-
-            let choice = Math.floor((Math.random() * files.length) + 1);
-
-            if (err) {
-                throw err;
-            }
-
-            let song = files[choice]
-
-            // dispatcher = connectedChannel.play('http://localhost:8080/' + song, { volume: .08 });
-
-            jsmediatags.read('http://localhost:8080/' + song, {
-                onSuccess: async tag => {
-
-                    let songInfo = {
-                        song,
-                        title: tag.tags.title,
-                        artist: tag.tags.artist,
-                        albumCover: '',
-                        albumCoverImageType: '',
-                        album: tag.tags.album,
-                        dispatcher
-                    }
-
-                    if (tag.tags.picture) {
-                        songInfo.albumCover = await new Buffer.from(tag.tags.picture.data)
-                        songInfo.albumCoverImageType = 'png'
-                    } else if (tag.tags.APIC) {
-                        songInfo.albumCover = await new Buffer.from(tag.tags.albumCover.data);
-                        songInfo.albumCoverImageType = 'png'
-                    } else {
-                        songInfo.albumCover = 'http://localhost:8080/placeholder.png';
-                        songInfo.albumCoverImageType = 'png'
-                    }
-                    return resolve(songInfo)
-                },
-                onError: (error) => {
-                    return reject(error.type, error.info)
-                }
-            });
-        })
-
-    });
-
-    let attachment = new MessageAttachment(song.albumCover, `albumCover.png`)
-
-    let nowPlaying = new MessageEmbed()
-        .setColor('#ff5e86')
-        .setTitle('Now Playing: ')
-        .addFields(
-            { name: song.title, value: song.artist }
-        )
-        .attachFiles([attachment])
-        .setImage(`attachment://albumCover.png`)
-        .setFooter(song.album);
-
-    msg.reply(nowPlaying);
-
-    song.dispatcher.on('finish', async () => {
+    let song = await botFunc.getRandomSong();
+    let embed = await botFunc.createMessageEmbed(song)
+    dispatcher = connectedChannel.play(`http://localhost:${process.env.NODE_SERVER_PORT}/` + song.fileName)
+    dispatcher.setVolume(volume);
+    msg.reply(embed);
+    dispatcher.on('finish', async () => {
         await playRandomSong(msg);
-    })
-
+    });
 };
 
+playYoutubeSong = (link) => {
+    dispatcher = connectedChannel.play(ytdl(link, { filter: 'audioonly' }));
+    dispatcher.setVolume(volume)
+}
 
-playSong = async (index) => {
+playSongFromPlaylist = async (index, msg) => {
+    index = parseInt(index, 10);
+    let playListLength = fs.readdirSync(path.join(__dirname + process.env.ROOT_DIR + 'youtube'));
+    if (index > playListLength.filter(f => f !== 'desktop.ini').length) {
+        return;
+    }
 
-    return new Promise((resolve, reject) => {
+    let song = await botFunc.getSongFromPlaylist(index);
+    let embed = await botFunc.createMessageEmbed(song);
 
-        fs.readdir(path.join(__dirname + process.env.ROOT_DIR + 'youtube'), (err, files) => {
+    dispatcher = connectedChannel.play(`http://localhost:${process.env.NODE_SERVER_PORT}/youtube/` + song.fileName);
+    dispatcher.setVolume(volume);
 
-            files = files.filter(f => f !== 'desktop.ini');
-
-            if (err) {
-                reject(err);
-            }
-
-            let song = files[index]
-
-            dispatcher = connectedChannel.play('http://localhost:8080/youtube/' + song, { volume: .5 });
-            dispatcher.setVolume(.2)
-
-            jsmediatags.read('http://localhost:8080/youtube/' + song, {
-                onSuccess: async tag => {
-
-                    let songInfo = {
-                        title: tag.tags.title,
-                        artist: tag.tags.artist,
-                        albumCover: `http://localhost:8080/artwork/${tag.tags.title}.jpg`,
-                        dispatcher
-                    }
-                    return resolve(songInfo)
-                },
-                onError: (error) => {
-                    return reject(error.type, error.info)
-                }
-            });
-        })
-
-    }).catch(err => console.log(err))
+    msg.reply(embed);
+    dispatcher.on('finish', async () => {
+        await playSongFromPlaylist((index + 1), msg)
+    })
 }
 
 
@@ -328,11 +206,8 @@ downloadSong = async (url) => {
         }
 
         let info = await ytdl.getInfo(url);
-
         let artist = info.videoDetails.artist ? info.videoDetails.artist : ' - ';
         let title = info.videoDetails.title ? info.videoDetails.title : ' - ';
-        let albumArt;
-
         let data = {
             artist: artist,
             title: title
@@ -385,12 +260,23 @@ downloadSong = async (url) => {
             return resolve(await setMetaData().catch(err => { reject(err) }))
         }, 1000)
 
-
-
     }).catch(err => { return err })
-
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//      _     _  _____  _     _ _______ _     _ ______  _______     ______ _____  ______  ______         ______  _____    _    
+//     | |   | |/ ___ \| |   | (_______) |   | (____  \(_______)   / _____) ___ \|  ___ \|  ___ \   /\  |  ___ \(____ \  | |   
+//     | |___| | |   | | |   | |_      | |   | |____)  )_____     | /    | |   | | | _ | | | _ | | /  \ | |   | |_   \ \  \ \  
+//      \_____/| |   | | |   | | |     | |   | |  __  (|  ___)    | |    | |   | | || || | || || |/ /\ \| |   | | |   | |  \ \ 
+//        ___  | |___| | |___| | |_____| |___| | |__)  ) |_____   | \____| |___| | || || | || || | |__| | |   | | |__/ /____) )
+//       (___)  \_____/ \______|\______)\______|______/|_______)   \______)_____/|_||_||_|_||_||_|______|_|   |_|_____(______/                                                                                                          
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 webPlaySong = async () => {
     let song = await playRandomSong();
@@ -434,7 +320,7 @@ webPlaySong = async () => {
 }
 
 
-playYoutubeSong = async (index) => {
+webPlayYoutubeSong = async (index) => {
     let link = youtubeLinks[index].link;
     let newIndex;
 
@@ -444,15 +330,10 @@ playYoutubeSong = async (index) => {
         newIndex = index + 1;
     }
 
-
-
-    //USE INDEX OF usiing the json file and make it play the next song in the list when finished
-
-
     dispatcher = connectedChannel.play(ytdl(link, { filter: 'audioonly' }));
     dispatcher.setVolume(0.5)
     dispatcher.on('finish', async () => {
-        playYoutubeSong(newIndex);
+        webPlayYoutubeSong(newIndex);
     });
     dispatcher.setVolume(0.05)
 }
@@ -467,7 +348,7 @@ webResumeSong = (index) => {
         dispatcher = connectedChannel.play(ytdl(youtubeLinks[0].link, { filter: 'audioonly' }));
         dispatcher.setVolume(0.03);
         dispatcher.on('finish', async () => {
-            this.playYoutubeSong(youtubeLinks[Math.floor(Math.Random() * 10) + 1]);
+            this.webPlayYoutubeSong(youtubeLinks[Math.floor(Math.Random() * 10) + 1]);
         });
     } else {
         dispatcher.resume();
@@ -476,12 +357,12 @@ webResumeSong = (index) => {
 
 webPlayPrevious = (index) => {
     nowPlayingIndex = index;
-    playYoutubeSong(index);
+    webPlayYoutubeSong(index);
 }
 
 webPlayNext = (index) => {
     nowPlayingIndex = index;
-    playYoutubeSong(index);
+    webPlayYoutubeSong(index);
 }
 
 
@@ -500,7 +381,6 @@ addYoutubeLink = async (link) => {
         image: linkInfo.player_response.videoDetails.thumbnail.thumbnails[0].url
     });
 
-
     return fs.writeFile(path.join(__dirname + `/../public/links.json`), JSON.stringify(youtubeLinks), err => {
         if (err) {
             return err
@@ -508,7 +388,6 @@ addYoutubeLink = async (link) => {
             return 'File appended.'
         }
     })
-    // })
 }
 
 volumeDown = () => {
@@ -530,10 +409,9 @@ youtubeStop = () => {
     dispatcher = '';
 }
 
-client.login(process.env.DISCORD_TOKEN);
 
 module.exports = {
-    playYoutubeSong,
+    webPlayYoutubeSong,
     webPlaySong,
     webPauseSong,
     webResumeSong,
@@ -544,3 +422,6 @@ module.exports = {
     volumeUp,
     youtubeStop
 }
+
+
+client.login(process.env.DISCORD_TOKEN);

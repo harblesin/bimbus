@@ -18,31 +18,6 @@ getRandomPic = () => {
     }).catch(err => { return err });
 }
 
-playRandomSong = (msg) => {
-    return new Promise(async (resolve, reject) => {
-        let song = await getRandomSong();
-        let attachment = new MessageAttachment(song.albumCover, `albumCover.png`)
-
-        let nowPlaying = new MessageEmbed()
-            .setColor('#ff5e86')
-            .setTitle('Now Playing: ')
-            .addFields(
-                { name: song.title, value: song.artist }
-            )
-            .attachFiles([attachment])
-            .setImage(`attachment://albumCover.png`)
-            .setFooter(song.album);
-
-        msg.reply(nowPlaying);
-
-        dispatcher = connectedChannel.play('http://localhost:8080/' + song.song, { volume: .08 });
-        song.dispatcher.on('finish', async () => {
-            await playRandomSong(msg);
-        });
-        resolve(dispatcher);
-    }).catch(err => { return err });
-}
-
 createMessageEmbed = (songInfo) => {
     return new Promise((resolve, reject) => {
         let attachment = new MessageAttachment(songInfo.albumCover, `albumCover.png`)
@@ -71,15 +46,13 @@ getRandomSong = () => {
                 throw err;
             }
 
-            let song = files[choice]
+            let fileName = files[choice]
 
-            // dispatcher = connectedChannel.play('http://localhost:8080/' + song, { volume: .08 });
-
-            jsmediatags.read('http://localhost:8080/' + song, {
+            jsmediatags.read(`http://localhost:${process.env.NODE_SERVER_PORT}/` + fileName, {
                 onSuccess: async tag => {
 
                     let songInfo = {
-                        song,
+                        fileName,
                         title: tag.tags.title,
                         artist: tag.tags.artist,
                         albumCover: '',
@@ -108,23 +81,45 @@ getRandomSong = () => {
     });
 }
 
-validatePlayType = (secondWord, dispatcher) => {
-    return new Promise(async (resolve, reject) => {
-        if (secondWord === 'music' || !secondWord) {
-            console.log('hey dude')
-            let songInfo = await getRandomSong();
-            let embed = await createMessageEmbed(songInfo);
-            resolve({ songInfo, embed })
-        } else {
-            resolve(secondWord)
-        }
-    })
+getSongFromPlaylist = async (index) => {
+    return new Promise((resolve, reject) => {
 
+        fs.readdir(path.join(__dirname + process.env.ROOT_DIR + 'youtube'), (err, files) => {
+
+            files = files.filter(f => f !== 'desktop.ini');
+
+            if (err) {
+                reject(err);
+            }
+
+            let fileName = files[index]
+
+
+            jsmediatags.read(`http://localhost:${process.env.NODE_SERVER_PORT}/youtube/` + fileName, {
+                onSuccess: async tag => {
+
+                    let songInfo = {
+                        fileName,
+                        title: tag.tags.title,
+                        artist: tag.tags.artist,
+                        albumCover: `http://localhost:${process.env.NODE_SERVER_PORT}/artwork/${tag.tags.title}.jpg`,
+                    }
+                    return resolve(songInfo)
+                },
+                onError: (error) => {
+                    return reject(error.type, error.info)
+                }
+            });
+        })
+
+    }).catch(err => console.log(err))
 }
+
 
 module.exports = {
     getRandomPic,
     getRandomSong,
-    validatePlayType
+    getSongFromPlaylist,
+    createMessageEmbed
 }
 
