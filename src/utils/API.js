@@ -10,6 +10,9 @@ module.exports = {
     playYoutubeLink: (index) => {
         return axios.post('/api/bot/playyoutube', index);
     },
+    deleteYoutubeLink: (index) => {
+        return axios.post('/api/bot/delete', index);
+    },
     pauseYoutube: () => {
         return axios.get('/api/bot/pause');
     },

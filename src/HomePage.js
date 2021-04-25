@@ -18,14 +18,13 @@ class HomePage extends Component {
     }
 
     play = async (index) => {
-        // let link = this.state.links[index];
-
-        console.log(index)
-
         await API.playYoutubeLink({ index });
-
         this.setState({ nowPlayingIndex: index });
+    }
 
+    delete = async (index) => {
+        await API.deleteYoutubeLink({ index });
+        await this.refreshLinks();
     }
 
     next = async (index) => {
@@ -82,10 +81,9 @@ class HomePage extends Component {
                     </div>
                 </div>
                 <div className={styles.div}>
-
                     <NowPlaying song={this.state.links[this.state.nowPlayingIndex]} prev={this.prev} next={this.next} index={this.state.nowPlayingIndex} />
                     <AddNew refreshLinks={this.refreshLinks} />
-                    <PlayList links={this.state.links} play={this.play} />
+                    <PlayList links={this.state.links} play={this.play} delete={this.delete} />
                 </div>
             </div>
         )

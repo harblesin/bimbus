@@ -1,7 +1,7 @@
 require("dotenv").config();
 const path = require('path');
 const Discord = require('discord.js');
-const youtubeLinks = require('../public/links.json');
+let youtubeLinks = require('../public/links.json');
 const { MessageAttachment, MessageEmbed } = require('discord.js');
 const fs = require('fs')
 const client = new Discord.Client();
@@ -23,7 +23,7 @@ let nowPlayingIndex;
 let volume = .06;
 
 client.on('ready', () => {
-    client.channels.fetch('319404366518026240').then(async channel => {
+    client.channels.fetch('832424837707857970').then(async channel => {
         connectedChannel = await channel.join();
     })
 });
@@ -268,12 +268,13 @@ downloadSong = async (url) => {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-//      _     _  _____  _     _ _______ _     _ ______  _______     ______ _____  ______  ______         ______  _____    _    
-//     | |   | |/ ___ \| |   | (_______) |   | (____  \(_______)   / _____) ___ \|  ___ \|  ___ \   /\  |  ___ \(____ \  | |   
-//     | |___| | |   | | |   | |_      | |   | |____)  )_____     | /    | |   | | | _ | | | _ | | /  \ | |   | |_   \ \  \ \  
-//      \_____/| |   | | |   | | |     | |   | |  __  (|  ___)    | |    | |   | | || || | || || |/ /\ \| |   | | |   | |  \ \ 
-//        ___  | |___| | |___| | |_____| |___| | |__)  ) |_____   | \____| |___| | || || | || || | |__| | |   | | |__/ /____) )
-//       (___)  \_____/ \______|\______)\______|______/|_______)   \______)_____/|_||_||_|_||_||_|______|_|   |_|_____(______/                                                                                                          
+//                  ___.                                                             .___        
+// __  _  __  ____ \_ |__        ____   ____    _____    _____  _____     ____    __| _/ ______ 
+// \ \/ \/ /_/ __ \ | __ \     _/ ___\ /  _ \  /     \  /     \ \__  \   /    \  / __ | /  ___/ 
+//  \     / \  ___/ | \_\ \    \  \___(  <_> )|  Y Y  \|  Y Y  \ / __ \_|   |  \/ /_/ | \___ \  
+//   \/\_/   \___  >|___  /     \___  >\____/ |__|_|  /|__|_|  /(____  /|___|  /\____ |/____  > 
+//               \/     \/          \/              \/       \/      \/      \/      \/     \/  
+//                                                                                                                                    
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -338,6 +339,18 @@ webPlayYoutubeSong = async (index) => {
         webPlayYoutubeSong(newIndex);
     });
     dispatcher.setVolume(0.05)
+}
+
+webDeleteYoutubeSong = async (index) => {
+    youtubeLinks.splice(index, 1);
+    return fs.writeFile(path.join(__dirname + `/../public/links.json`), JSON.stringify(youtubeLinks), err => {
+        if (err) {
+            return err
+        } else {
+            return 'File Removed.'
+        }
+    })
+
 }
 
 
@@ -411,10 +424,16 @@ youtubeStop = () => {
     dispatcher = '';
 }
 
+webGetYoutubeLinks = () => {
+    let links = youtubeLinks;
+    return links;
+}
+
 
 module.exports = {
     webPlayYoutubeSong,
     webPlaySong,
+    webDeleteYoutubeSong,
     webPauseSong,
     webResumeSong,
     webPlayPrevious,
@@ -422,7 +441,8 @@ module.exports = {
     addYoutubeLink,
     volumeDown,
     volumeUp,
-    youtubeStop
+    youtubeStop,
+    webGetYoutubeLinks
 }
 
 

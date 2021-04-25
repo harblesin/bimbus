@@ -12,6 +12,8 @@ router.route('/playyoutube').post(botController.playYoutube);
 
 router.route('/pause').get(botController.pauseYoutube);
 
+router.route('/delete').post(botController.deleteYoutube);
+
 router.route('/resume').get(botController.resumeYoutube);
 
 router.route('/addlink').post(botController.addYoutubeLink);

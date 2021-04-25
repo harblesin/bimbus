@@ -9,11 +9,16 @@ const play = (req, res) => {
 }
 
 const getLinks = async (req, res) => {
-    res.json(linksFile);
+    res.json(bot.webGetYoutubeLinks());
 }
 
 const playYoutube = (req, res) => {
     bot.webPlayYoutubeSong(req.body.index);
+    res.end();
+}
+
+const deleteYoutube = (req, res) => {
+    bot.webDeleteYoutubeSong(req.body.index);
     res.end();
 }
 
@@ -65,6 +70,7 @@ module.exports = {
     play,
     getLinks,
     playYoutube,
+    deleteYoutube,
     pauseYoutube,
     resumeYoutube,
     playPrevYoutube,

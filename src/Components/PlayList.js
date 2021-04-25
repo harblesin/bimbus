@@ -9,14 +9,11 @@ const PlayList = props => {
                 {props.links.map((l, index) => (
                     <div className={styles.listItem} key={l.title}>
                         <div className={styles.infoSection}>
+                            <button className={styles.button} onClick={() => props.play(index)}>{'\u25B6'}</button>
                             <div className={styles.title}>{l.title}</div>
-                            <div className={styles.link}>{l.link}</div>
-                            <div className={styles.buttonRow}>
-                                <button className={styles.button} onClick={() => props.play(index)}>PLAY THE SONG</button>
-                            </div>
-
+                            <a className={styles.link} href={l.link}>URL</a>
                         </div>
-                        <img className={styles.img} src={l.image} alt="Pic" ></img>
+                        <button className={styles.deleteButton} onClick={() => props.delete(index)}>{'\u2716'}</button>
                     </div>
                 ))}
             </div>
