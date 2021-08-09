@@ -150,6 +150,8 @@ client.on('message', async msg => {
                 };
                 msg.reply({ embed: res });
                 break;
+            default:
+                break;
         }
     }
 });
