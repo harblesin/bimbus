@@ -33,7 +33,6 @@ class Login extends Component {
             let el = `<h1 id="count" style="font-size: 78px" >5 </h1>`
             document.getElementById("input").outerHTML = el
 
-
             let header = document.getElementById("header");
             header.innerHTML = 'Nice job!'
 
@@ -43,7 +42,8 @@ class Login extends Component {
             headerImg1.style["display"] = "none";
             let headerImg2 = document.getElementById('headerImg2');
             headerImg2.classList.add("appear");
-            headerImg2.style['display'] = 'flex'
+            headerImg2.style['display'] = 'block'
+            headerImg2.style['margin'] = 'auto'
 
             setInterval(() => {
                 if (this.state.time === 0) {
@@ -59,7 +59,7 @@ class Login extends Component {
 
             setTimeout(() => {
                 document.getElementById("loginForm").style['display'] = 'none'
-                document.getElementById("page").style["display"] = "flex"
+                document.getElementById("page").style["display"] = "block"
             }, 5000)
 
         } else {
@@ -83,7 +83,7 @@ class Login extends Component {
                     <img id="headerImg2" style={{ boxShadow: "3px 0px 63px 10px rgba(0,0,255,0.3)", marginBottom: "100px", display: 'none' }} src={approved} alt="Phil" />
                     <div id="input" style={{ display: "flex", flexDirection: "row", justifyContent: "center" }}>
                         <form onSubmit={(e) => this.authCheck(e)}>
-                            <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: "600px" }}>
+                            <div id="flexContainer" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: "600px" }}>
                                 <label htmlFor="userName">Username</label>
                                 <input style={{ marginBottom: "20px" }} type="text" name="userName" id="userName" value={this.state.userName} onChange={(e) => this.onChange(e)}></input>
                                 <label htmlFor="userName">Password</label>
