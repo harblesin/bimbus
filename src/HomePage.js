@@ -4,6 +4,7 @@ import NowPlaying from "./Components/NowPlaying";
 import PlayList from "./Components/PlayList";
 import AddNew from "./Components/AddNew";
 import API from './utils/API';
+import q from "./images/q-double.gif"
 
 
 class HomePage extends Component {
@@ -74,7 +75,7 @@ class HomePage extends Component {
                         <div className={styles.headerText}>
                             <span className={styles.funnyText}>Corn</span>
                         </div>
-                        <img className={styles.img} src="http://localhost:8080/q-double.gif" alt="Pic" />
+                        <img className={styles.img} src={q} alt="Pic" />
                         <div className={styles.headerText}>
                             <span className={styles.funnyText}>Corner</span>
                         </div>
