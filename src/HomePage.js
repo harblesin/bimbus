@@ -4,7 +4,8 @@ import NowPlaying from "./Components/NowPlaying";
 import PlayList from "./Components/PlayList";
 import AddNew from "./Components/AddNew";
 import API from './utils/API';
-import q from "./images/q-double.gif"
+import q from "./images/q-double.gif";
+import socket from "./socket/socket";
 
 
 class HomePage extends Component {
@@ -59,12 +60,23 @@ class HomePage extends Component {
 
     refreshLinks = async () => {
         let files = await API.getLinks();
-        this.setState({ links: files.data })
+        this.setState({ links: files.data });
+        this.emitRefreshMessage();
+    }
+
+    emitRefreshMessage = () => {
+        socket.emit("refresh", {
+            msg: "we need you to update"
+        })
     }
 
     componentDidMount = async () => {
         let files = await API.getLinks();
-        this.setState({ links: files.data })
+        this.setState({ links: files.data });
+
+        socket.on("refresh", () => {
+            this.refreshLinks();
+        })
     }
 
     render = () => {

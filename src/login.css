@@ -9,9 +9,9 @@
 }
 
 .appear {
-    animation: appear 3s;
+    animation: appear 3.5s;
 }
 
 .disappear {
-    animation: disappear 3s;
+    animation: disappear 3.5s;
 }
