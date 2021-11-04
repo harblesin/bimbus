@@ -9,10 +9,24 @@ const jsmediatags = require("jsmediatags");
 getRandomPic = () => {
     return new Promise((resolve, reject) => {
         fs.readdir(process.env.PIC_DIR, (err, files) => {
-            let choice = Math.floor((Math.random() * files.length) + 1);
             if (err) {
                 reject(err);
             }
+            let choice = Math.floor((Math.random() * files.length) + 1);
+            resolve(files[choice]);
+        });
+    }).catch(err => { return err });
+}
+
+getRandomNeuralPic = () => {
+    return new Promise((resolve, reject) => {
+        console.log(process.env.NEURAL_PIC_DIR)
+        fs.readdir(process.env.NEURAL_PIC_DIR, (err, files) => {
+            console.log(files)
+            if (err) {
+                reject(err);
+            }
+            let choice = Math.floor((Math.random() * files.length) + 1);
             resolve(files[choice]);
         });
     }).catch(err => { return err });
@@ -111,6 +125,7 @@ getSongFromPlaylist = async (index) => {
 
 module.exports = {
     getRandomPic,
+    getRandomNeuralPic,
     getRandomSong,
     getSongFromPlaylist,
     createMessageEmbed

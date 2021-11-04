@@ -17,9 +17,11 @@ app.use(express.static(path.join(__dirname + "../../../../../Videos")))
 if (process.env.NODE_ENV === "production") {
     app.use(express.static(path.join(__dirname + "../../../../../../srv/Pictures")));
     app.use(express.static(path.join(__dirname + "../../../../../../srv/Music")));
+    app.use(express.static(path.join(__dirname + "../../../../../../srv/Neural")));
 
 } else {
     app.use(express.static(path.join(__dirname + "../../../../../Pictures")));
+    app.use(express.static(path.join(__dirname + "../../../../euralblend")));
     app.use(express.static(path.join(__dirname + "../../../../../Music")))
 
 }

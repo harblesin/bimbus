@@ -52,6 +52,16 @@ client.on('message', async msg => {
             case '!randompic':
                 let file = await botFunc.getRandomPic();
                 image = new MessageAttachment(`http://localhost:${process.env.NODE_SERVER_PORT}/` + file);
+                console.log(image)
+                // return
+                msg.reply(image);
+                break;
+
+            case '!neural':
+                let neuralfile = await botFunc.getRandomNeuralPic();
+                image = new MessageAttachment(`http://localhost:${process.env.NODE_SERVER_PORT}/` + neuralfile);
+                console.log(image)
+                // return
                 msg.reply(image);
                 break;
 
