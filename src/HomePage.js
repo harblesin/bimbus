@@ -93,7 +93,7 @@ class HomePage extends Component {
                         </div>
                     </div>
                 </div>
-                <div className={styles.div}>
+                <div className={`${styles.div} ${styles.nowPlayingHeader}`}>
                     <NowPlaying song={this.state.links[this.state.nowPlayingIndex]} prev={this.prev} next={this.next} index={this.state.nowPlayingIndex} />
                     <AddNew refreshLinks={this.refreshLinks} />
                     <PlayList links={this.state.links} play={this.play} delete={this.delete} />
