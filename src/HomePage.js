@@ -82,7 +82,7 @@ class HomePage extends Component {
     render = () => {
         return (
             <div className={styles.background}>
-                <div className={styles.header}>
+                {/* <div className={styles.header}>
                     <div className={styles.imageHeader}>
                         <div className={styles.headerText}>
                             <span className={styles.funnyText}>Corn</span>
@@ -92,7 +92,7 @@ class HomePage extends Component {
                             <span className={styles.funnyText}>Corner</span>
                         </div>
                     </div>
-                </div>
+                </div> */}
                 <div className={`${styles.div} ${styles.nowPlayingHeader}`}>
                     <NowPlaying song={this.state.links[this.state.nowPlayingIndex]} prev={this.prev} next={this.next} index={this.state.nowPlayingIndex} />
                     <AddNew refreshLinks={this.refreshLinks} />
