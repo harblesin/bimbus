@@ -19,38 +19,6 @@ class HomePage extends Component {
         nowPlayingIndex: 0
     }
 
-    play = async (index) => {
-        await API.playYoutubeLink({ index });
-        this.setState({ nowPlayingIndex: index });
-    }
-
-    delete = async (index) => {
-        await API.deleteYoutubeLink({ index });
-        await this.refreshLinks();
-    }
-
-    next = async (index) => {
-        if (index === this.state.links.length - 1) {
-            index = 0
-        } else {
-            index = index + 1
-        }
-        this.setState({ nowPlayingIndex: index }, () => {
-            API.playNextYoutube(this.state.nowPlayingIndex)
-        })
-    }
-
-    prev = async (index) => {
-        if (index === 0) {
-            index = this.state.links.length - 1;
-        } else {
-            index = index - 1
-        }
-        this.setState({ nowPlayingIndex: index }, () => {
-            API.playPrevYoutube(this.state.nowPlayingIndex)
-        })
-    }
-
     stop = () => {
         this.setState({ nowPlayingIndex: 0 }, () => {
             API.stopYoutube();
@@ -70,33 +38,39 @@ class HomePage extends Component {
         })
     }
 
+    shouldComponentUpdate = (prevState, prevProps) => {
+        if (prevState !== this.state) {
+            return true;
+        }
+    }
+
     componentDidMount = async () => {
         let files = await API.getLinks();
         this.setState({ links: files.data });
 
         socket.on("refresh", () => {
             this.refreshLinks();
-        })
+        });
     }
 
     render = () => {
         return (
             <div className={styles.background}>
-                {/* <div className={styles.header}>
+                <div className={styles.header}>
                     <div className={styles.imageHeader}>
                         <div className={styles.headerText}>
-                            <span className={styles.funnyText}>Corn</span>
+                            <span className={styles.funnyText}>Web</span>
                         </div>
                         <img className={styles.img} src={q} alt="Pic" />
                         <div className={styles.headerText}>
-                            <span className={styles.funnyText}>Corner</span>
+                            <span className={styles.funnyText}>Page</span>
                         </div>
                     </div>
-                </div> */}
+                </div>
                 <div className={`${styles.div} ${styles.nowPlayingHeader}`}>
-                    <NowPlaying song={this.state.links[this.state.nowPlayingIndex]} prev={this.prev} next={this.next} index={this.state.nowPlayingIndex} />
+                    <NowPlaying song={{}} prev={this.prev} next={this.next} index={this.state.nowPlayingIndex} />
                     <AddNew refreshLinks={this.refreshLinks} />
-                    <PlayList links={this.state.links} play={this.play} delete={this.delete} />
+                    <PlayList />
                 </div>
             </div>
         )

@@ -1,8 +1,6 @@
 import { io } from "socket.io-client";
 
-const URL = 'https://bimbus.info';
-
-const socket = io(URL);
+const socket = io(process.env.SOCKET_URL);
 
 
 export default socket;

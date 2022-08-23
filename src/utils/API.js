@@ -1,40 +1,61 @@
 const { default: axios } = require("axios")
 
+
+const getLinks = () => {
+    return new Promise((resolve, reject) => {
+        axios.get('/api/bot/links').then(res => {
+            resolve(res.data);
+        });
+    })
+}
+
+const addYoutubeLink = (link) => {
+    axios.post('/api/bot/addlink', { link });
+}
+
+const deleteYoutubeLink = (index) => {
+    return new Promise((resolve, reject) => {
+        axios.post('/api/bot/delete', index).then((result) => {
+            resolve(result);
+        });
+    })
+}
+
 module.exports = {
     play: () => {
-        return axios.post('/api/bot/play');
+        axios.post('/api/bot/play');
     },
-    getLinks: () => {
-        return axios.get('/api/bot/links')
-    },
+    getLinks,
     playYoutubeLink: (index) => {
-        return axios.post('/api/bot/playyoutube', index);
+        return axios.post('/api/bot/playyoutube', index).then(result => {
+            return result.data
+        });
     },
-    deleteYoutubeLink: (index) => {
-        return axios.post('/api/bot/delete', index);
-    },
-    pauseYoutube: () => {
-        return axios.get('/api/bot/pause');
+    deleteYoutubeLink,
+    constpauseYoutube: () => {
+        axios.get('/api/bot/pause');
     },
     resumeYoutube: () => {
-        return axios.get('/api/bot/resume');
+        axios.get('/api/bot/resume');
     },
-    addYoutubeLink: (link) => {
-        return axios.post('/api/bot/addlink', link);
-    },
+    addYoutubeLink,
     playNextYoutube: (index) => {
-        return axios.get('/api/bot/next', { params: { index } });
+        return axios.get('/api/bot/next', { params: { index } }).then(result => {
+            return result.data;
+        });
     },
     playPrevYoutube: (index) => {
-        return axios.get('/api/bot/prev', { params: { index } })
+        return axios.get('/api/bot/prev', { params: { index } }).then(result => {
+            return result.data
+        })
     },
     volumeDown: () => {
-        return axios.get('/api/bot/volumedown');
+        axios.get('/api/bot/volumedown');
     },
     volumeUp: () => {
-        return axios.get('/api/bot/volumeup');
+        axios.get('/api/bot/volumeup');
     },
     stopYoutube: () => {
-        return axios.get('/api/bot/stop');
+        axios.get('/api/bot/stop');
     }
 }

@@ -35,10 +35,25 @@ let server = app.listen(PORT, () => {
 const io = socketIO(server, { cors: { origin: "*" } });
 
 io.on("connection", (socket) => {
-    console.log("Socket connected with id " + socket.id)
-    socket.on('refresh', (event) => {
-        socket.broadcast.emit("refresh", {
-            msg: `refresh`
-        })
+    console.log("Socket connected with id " + socket.id);
+
+    socket.on('updateAllLinks', (event) => {
+        socket.emit("updateAllLinks", { msg: `Updating All Links` })
+    });
+
+    socket.on('refreshLinks', (event) => {
+        socket.broadcast.emit("refreshLinks", { msg: `refresh` })
+    });
+
+    socket.on('changeNowPlaying', (event) => {
+        socket.emit("changeNowPlaying", { ...event })
+    });
+
+    socket.on("prevSong", event => {
+        socket.broadcast.emit("prevSong", { ...event })
+    });
+
+    socket.on("nextSong", event => {
+        socket.broadcast.emit("nextSong", { ...event })
     })
 });

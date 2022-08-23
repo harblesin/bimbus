@@ -1,20 +1,26 @@
 const bot = require("../../bot/bot");
 const fs = require('fs');
-const path = require('path');
-const linksFile = require("../../public/links.json");
 
 const play = (req, res) => {
     bot.webPlaySong();
     res.end()
 }
 
-const getLinks = async (req, res) => {
-    res.json(bot.webGetYoutubeLinks());
+const getLinks = (req, res) => {
+
+    bot.webGetYoutubeLinks()
+        .then(result => {
+            res.send(result);
+        })
+        .catch(err => {
+            res.end(err);
+        })
+
 }
 
-const playYoutube = (req, res) => {
-    bot.webPlayYoutubeSong(req.body.index);
-    res.end();
+const playYoutube = async (req, res) => {
+    let song = await bot.webPlayYoutubeSong(req.body.index);
+    res.json(song);
 }
 
 const deleteYoutube = (req, res) => {
@@ -32,23 +38,26 @@ const resumeYoutube = (req, res) => {
     res.end();
 }
 
-const addYoutubeLink = async (req, res) => {
+const addYoutubeLink = (req, res) => {
 
     let { link } = req.body;
-    let result = await bot.addYoutubeLink(link);
-
-    res.json(result);
+    bot.addYoutubeLink(link)
+        .then(result => {
+            res.json(result);
+        })
+        .catch(err => {
+            res.json(err);
+        });
 }
 
-const playPrevYoutube = (req, res) => {
+const playPrevYoutube = async (req, res) => {
     let index = req.query.index;
-
-    bot.webPlayPrevious(index);
+    res.json(await bot.webPlayPrevious(index));
 }
 
-const playNextYoutube = (req, res) => {
+const playNextYoutube = async (req, res) => {
     let index = req.query.index;
-    bot.webPlayNext(index);
+    res.json(await bot.webPlayNext(index));
 }
 
 const volumeDown = (req, res) => {

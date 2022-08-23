@@ -52,16 +52,12 @@ client.on('message', async msg => {
             case '!randompic':
                 let file = await botFunc.getRandomPic();
                 image = new MessageAttachment(`http://localhost:${process.env.NODE_SERVER_PORT}/` + file);
-                console.log(image)
-                // return
                 msg.reply(image);
                 break;
 
             case '!neural':
                 let neuralfile = await botFunc.getRandomNeuralPic();
                 image = new MessageAttachment(`http://localhost:${process.env.NODE_SERVER_PORT}/` + neuralfile);
-                console.log(image)
-                // return
                 msg.reply(image);
                 break;
 
@@ -336,6 +332,9 @@ webPlaySong = async () => {
 
 
 webPlayYoutubeSong = async (index) => {
+    if (!youtubeLinks[index]) {
+        return false;
+    }
     let link = youtubeLinks[index].link;
     let newIndex;
 
@@ -350,7 +349,8 @@ webPlayYoutubeSong = async (index) => {
     dispatcher.on('finish', async () => {
         webPlayYoutubeSong(newIndex);
     });
-    dispatcher.setVolume(0.05)
+    dispatcher.setVolume(0.05);
+    return youtubeLinks[index];
 }
 
 webDeleteYoutubeSong = async (index) => {
@@ -382,39 +382,46 @@ webResumeSong = (index) => {
     }
 }
 
-webPlayPrevious = (index) => {
+webPlayPrevious = async (index) => {
     nowPlayingIndex = index;
-    webPlayYoutubeSong(index);
+    return await webPlayYoutubeSong(index);
 }
 
 webPlayNext = (index) => {
     nowPlayingIndex = index;
-    webPlayYoutubeSong(index);
+    return webPlayYoutubeSong(index);
 }
 
 
-addYoutubeLink = async (link) => {
+const addYoutubeLink = async (link) => {
 
-    let weGood = ytdl.validateURL(link)
 
-    if (!weGood) {
-        return 'no';
-    }
-    let linkInfo = await ytdl.getInfo(link);
+    return new Promise(async (resolve, reject) => {
+        let weGood = ytdl.validateURL(link);
 
-    youtubeLinks.push({
-        title: linkInfo.player_response.videoDetails.title,
-        link: link,
-        image: linkInfo.player_response.videoDetails.thumbnail.thumbnails[0].url
-    });
-
-    return fs.writeFile(path.join(__dirname + `/../public/links.json`), JSON.stringify(youtubeLinks), err => {
-        if (err) {
-            return err
-        } else {
-            return 'File appended.'
+        if (!weGood) {
+            return reject('no');
         }
+        let linkInfo = await ytdl.getInfo(link);
+
+        youtubeLinks.push({
+            title: linkInfo.player_response.videoDetails.title,
+            link: link,
+            image: linkInfo.player_response.videoDetails.thumbnail.thumbnails[0].url
+        });
+
+        let pathName = path.join(__dirname, `../public/links.json`);
+
+        fs.writeFile(pathName, JSON.stringify(youtubeLinks), (err) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve('File appended.');
+            }
+        })
+
     })
+
 }
 
 volumeDown = () => {
@@ -437,8 +444,10 @@ youtubeStop = () => {
 }
 
 webGetYoutubeLinks = () => {
-    let links = youtubeLinks;
-    return links;
+    return new Promise((resolve, reject) => {
+        let links = youtubeLinks;
+        return resolve(links);
+    })
 }
 
 

@@ -29,10 +29,15 @@
     "web-vitals": "^1.1.2",
     "webp-converter": "^2.3.3",
     "ytdl": "^1.4.1",
-    "ytdl-core": "^4.8.3"
+    "ytdl-core": "^4.10.0"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "public/links.json"
+    ]
   },
   "scripts": {
-    "launch": "concurrently \"npm start\" \"nodemon node_server/server.js\"",
+    "launch": "concurrently \"npm start\" \"nodemon --ignore public/links.json node_server/server.js\"",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
