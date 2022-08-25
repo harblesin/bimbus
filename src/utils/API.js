@@ -1,44 +1,39 @@
 const { default: axios } = require("axios")
 
-
-const getLinks = () => {
-    return new Promise((resolve, reject) => {
-        axios.get('/api/bot/links').then(res => {
-            resolve(res.data);
-        });
-    })
-}
-
-const addYoutubeLink = (link) => {
-    axios.post('/api/bot/addlink', { link });
-}
-
-const deleteYoutubeLink = (index) => {
-    return new Promise((resolve, reject) => {
-        axios.post('/api/bot/delete', index).then((result) => {
-            resolve(result);
-        });
-    })
-}
-
 module.exports = {
     play: () => {
         axios.post('/api/bot/play');
     },
-    getLinks,
+    getLinks: () => {
+        return new Promise((resolve, reject) => {
+            axios.get('/api/bot/links').then(res => {
+                resolve(res.data);
+            });
+        })
+    },
     playYoutubeLink: (index) => {
         return axios.post('/api/bot/playyoutube', index).then(result => {
             return result.data
         });
     },
-    deleteYoutubeLink,
-    constpauseYoutube: () => {
+    deleteYoutubeLink: (index) => {
+        return new Promise((resolve, reject) => {
+            axios.post('/api/bot/delete', index).then((result) => {
+                resolve(result);
+            });
+        })
+    },
+    pauseYoutube: () => {
         axios.get('/api/bot/pause');
     },
     resumeYoutube: () => {
-        axios.get('/api/bot/resume');
+        return axios.get('/api/bot/resume').then(result => {
+            return result.data;
+        });
     },
-    addYoutubeLink,
+    addYoutubeLink: (link) => {
+        axios.post('/api/bot/addlink', { link });
+    },
     playNextYoutube: (index) => {
         return axios.get('/api/bot/next', { params: { index } }).then(result => {
             return result.data;
@@ -57,5 +52,10 @@ module.exports = {
     },
     stopYoutube: () => {
         axios.get('/api/bot/stop');
+    },
+    shuffleSongs: () => {
+        return axios.get("/api/bot/shuffle").then(result => {
+            return result.data;
+        })
     }
 }

@@ -35,7 +35,6 @@ let server = app.listen(PORT, () => {
 const io = socketIO(server, { cors: { origin: "*" } });
 
 io.on("connection", (socket) => {
-    console.log("Socket connected with id " + socket.id);
 
     socket.on('updateAllLinks', (event) => {
         socket.emit("updateAllLinks", { msg: `Updating All Links` })
@@ -46,7 +45,7 @@ io.on("connection", (socket) => {
     });
 
     socket.on('changeNowPlaying', (event) => {
-        socket.emit("changeNowPlaying", { ...event })
+        io.emit("changeNowPlaying", { ...event })
     });
 
     socket.on("prevSong", event => {
@@ -55,5 +54,15 @@ io.on("connection", (socket) => {
 
     socket.on("nextSong", event => {
         socket.broadcast.emit("nextSong", { ...event })
-    })
+    });
+
+    socket.on("requestingSongInfo", event => {
+        socket.broadcast.emit("requestingSongInfo", { ...event })
+    });
+
+    socket.on("sendingSongInfo", event => {
+        socket.broadcast.emit("sendingSongInfo", { ...event })
+    });
+
+    module.exports = io;
 });

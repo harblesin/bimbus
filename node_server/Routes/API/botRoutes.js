@@ -28,6 +28,8 @@ router.route('/volumeup').get(botController.volumeUp);
 
 router.route("/stop").get(botController.stopYoutube);
 
+router.route("/shuffle").get(botController.shuffleYoutube);
+
 
 
 module.exports = router;

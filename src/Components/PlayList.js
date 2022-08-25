@@ -61,11 +61,14 @@ const PlayList = props => {
                 {links.map((l, index) => (
                     <div className={styles.listItem} key={index}>
                         <div className={styles.infoSection}>
-                            <button className={styles.button} onClick={() => playSong(index)}>{'\u25B6'}</button>
+                            <span className={styles.songNumberSpan}>{index + 1}.</span>
                             <div className={styles.title}>{l.title}</div>
                             <a className={styles.link} href={l.link}>URL</a>
                         </div>
-                        <button className={styles.deleteButton} onClick={() => deleteSong(index)}>{'\u2716'}</button>
+                        <div className={styles.buttonSection}>
+                            <button className={styles.button} onClick={() => playSong(index)}><i className='fa fa-play'></i></button>
+                            <button className={styles.deleteButton} onClick={() => deleteSong(index)}><i className='fa fa-close'></i></button>
+                        </div>
                     </div>
                 ))}
             </div>

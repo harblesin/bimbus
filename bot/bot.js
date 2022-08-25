@@ -332,25 +332,31 @@ webPlaySong = async () => {
 
 
 webPlayYoutubeSong = async (index) => {
-    if (!youtubeLinks[index]) {
-        return false;
-    }
-    let link = youtubeLinks[index].link;
-    let newIndex;
+    return new Promise(async (resolve, reject) => {
+        if (!youtubeLinks[index]) {
+            return resolve(false);
+        }
+        nowPlayingIndex = index;
+        let link = youtubeLinks[nowPlayingIndex].link;
 
-    if (index === youtubeLinks.length - 1) {
-        newIndex = 0;
-    } else {
-        newIndex = index + 1;
-    }
+        dispatcher = connectedChannel.play(ytdl(link, { filter: 'audioonly' }));
+        dispatcher.setVolume(0.5)
+        dispatcher.on('finish', async () => {
+            if (nowPlayingIndex + 1 >= youtubeLinks.length) {
+                nowPlayingIndex = 0;
+            } else {
+                nowPlayingIndex = nowPlayingIndex + 1
+            }
+            webPlayYoutubeSong(nowPlayingIndex);
+            let io = require("../node_server/server");
+            await io.emit("changeNowPlaying", {
+                msg: "changeNowPlaying", song: youtubeLinks[nowPlayingIndex], index: nowPlayingIndex
+            });
+        });
+        dispatcher.setVolume(0.05);
+        return resolve(youtubeLinks[nowPlayingIndex]);
+    })
 
-    dispatcher = connectedChannel.play(ytdl(link, { filter: 'audioonly' }));
-    dispatcher.setVolume(0.5)
-    dispatcher.on('finish', async () => {
-        webPlayYoutubeSong(newIndex);
-    });
-    dispatcher.setVolume(0.05);
-    return youtubeLinks[index];
 }
 
 webDeleteYoutubeSong = async (index) => {
@@ -362,9 +368,7 @@ webDeleteYoutubeSong = async (index) => {
             return 'File Removed.'
         }
     })
-
 }
-
 
 webPauseSong = () => {
     dispatcher.pause();
@@ -375,10 +379,13 @@ webResumeSong = (index) => {
         dispatcher = connectedChannel.play(ytdl(youtubeLinks[0].link, { filter: 'audioonly' }));
         dispatcher.setVolume(0.03);
         dispatcher.on('finish', async () => {
-            this.webPlayYoutubeSong(youtubeLinks[Math.floor(Math.Random() * 10) + 1]);
+            nowPlayingIndex = nowPlayingIndex + 1;
+            this.webPlayYoutubeSong(nowPlayingIndex);
         });
+        return youtubeLinks[0];
     } else {
         dispatcher.resume();
+        return false;
     }
 }
 
@@ -450,6 +457,27 @@ webGetYoutubeLinks = () => {
     })
 }
 
+shuffleYoutube = () => {
+    return new Promise(async (resolve, reject) => {
+
+        nowPlayingIndex = Math.floor(Math.random() * (youtubeLinks.length - 1))
+        let link = youtubeLinks[nowPlayingIndex].link;
+
+        let io = require("../node_server/server");
+        await io.emit("changeNowPlaying", {
+            msg: "changeNowPlaying", song: youtubeLinks[nowPlayingIndex], index: nowPlayingIndex
+        });
+
+        dispatcher = connectedChannel.play(ytdl(link, { filter: 'audioonly' }));
+        dispatcher.setVolume(0.5)
+        dispatcher.on('finish', async () => {
+            await shuffleYoutube();
+        });
+        dispatcher.setVolume(0.05);
+        return resolve({ song: youtubeLinks[nowPlayingIndex], index: nowPlayingIndex });
+    });
+}
+
 
 module.exports = {
     webPlayYoutubeSong,
@@ -463,7 +491,8 @@ module.exports = {
     volumeDown,
     volumeUp,
     youtubeStop,
-    webGetYoutubeLinks
+    webGetYoutubeLinks,
+    shuffleYoutube
 }
 
 
