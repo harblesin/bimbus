@@ -85,7 +85,6 @@ const NowPlaying = props => {
 
     const resume = async () => {
         let song = await API.resumeYoutube();
-        console.log(song)
         if (song) {
             setSong(song);
             setIndex(0);
@@ -98,7 +97,6 @@ const NowPlaying = props => {
 
     const shuffleSongs = async () => {
         let { song, index } = await API.shuffleSongs();
-        console.log(song)
         setSong(song);
         setIndex(index);
         songRef.current = song;
