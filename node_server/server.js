@@ -45,8 +45,7 @@ io.on("connection", (socket) => {
     });
 
     socket.on('changeNowPlaying', (event) => {
-        socket.emit("changeNowPlaying", { ...event })
-        socket.broadcast.emit('changeNowPlaying', { ...event })
+        io.emit("changeNowPlaying", { ...event })
     });
 
     socket.on("prevSong", event => {
@@ -65,5 +64,5 @@ io.on("connection", (socket) => {
         socket.broadcast.emit("sendingSongInfo", { ...event })
     });
 
-    module.exports = socket;
+    module.exports = io;
 });

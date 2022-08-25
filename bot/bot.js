@@ -348,11 +348,8 @@ webPlayYoutubeSong = async (index) => {
                 nowPlayingIndex = nowPlayingIndex + 1
             }
             webPlayYoutubeSong(nowPlayingIndex);
-            let socket = require("../node_server/server");
-            await socket.emit("changeNowPlaying", {
-                msg: "changeNowPlaying", song: youtubeLinks[nowPlayingIndex], index: nowPlayingIndex
-            });
-            await socket.broadcast.emit("changeNowPlaying", {
+            let io = require("../node_server/server");
+            await io.emit("changeNowPlaying", {
                 msg: "changeNowPlaying", song: youtubeLinks[nowPlayingIndex], index: nowPlayingIndex
             });
         });
@@ -466,11 +463,8 @@ shuffleYoutube = () => {
         nowPlayingIndex = Math.floor(Math.random() * (youtubeLinks.length - 1))
         let link = youtubeLinks[nowPlayingIndex].link;
 
-        let socket = require("../node_server/server");
-        await socket.emit("changeNowPlaying", {
-            msg: "changeNowPlaying", song: youtubeLinks[nowPlayingIndex], index: nowPlayingIndex
-        });
-        await socket.broadcast.emit("changeNowPlaying", {
+        let io = require("../node_server/server");
+        await io.emit("changeNowPlaying", {
             msg: "changeNowPlaying", song: youtubeLinks[nowPlayingIndex], index: nowPlayingIndex
         });
 
