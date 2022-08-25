@@ -32,11 +32,13 @@ module.exports = {
         });
     },
     deleteYoutubeLink,
-    constpauseYoutube: () => {
+    pauseYoutube: () => {
         axios.get('/api/bot/pause');
     },
     resumeYoutube: () => {
-        axios.get('/api/bot/resume');
+        return axios.get('/api/bot/resume').then(result => {
+            return result.data;
+        });
     },
     addYoutubeLink,
     playNextYoutube: (index) => {
@@ -57,5 +59,12 @@ module.exports = {
     },
     stopYoutube: () => {
         axios.get('/api/bot/stop');
+    },
+    shuffleSongs: () => {
+        console.log("huh")
+        return axios.get("/api/bot/shuffle").then(result => {
+            console.log(result)
+            return result.data;
+        })
     }
 }

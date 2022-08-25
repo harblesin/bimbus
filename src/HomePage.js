@@ -59,11 +59,11 @@ class HomePage extends Component {
                 <div className={styles.header}>
                     <div className={styles.imageHeader}>
                         <div className={styles.headerText}>
-                            <span className={styles.funnyText}>Web</span>
+                            <span className={styles.funnyText}>Website</span>
                         </div>
                         <img className={styles.img} src={q} alt="Pic" />
                         <div className={styles.headerText}>
-                            <span className={styles.funnyText}>Page</span>
+                            <span className={styles.funnyText}>Header :)</span>
                         </div>
                     </div>
                 </div>

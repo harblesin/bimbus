@@ -33,9 +33,8 @@ const pauseYoutube = (req, res) => {
     res.end();
 }
 
-const resumeYoutube = (req, res) => {
-    bot.webResumeSong();
-    res.end();
+const resumeYoutube = async (req, res) => {
+    res.json(await bot.webResumeSong());
 }
 
 const addYoutubeLink = (req, res) => {
@@ -75,6 +74,10 @@ const stopYoutube = (req, res) => {
     res.end();
 }
 
+const shuffleYoutube = async (req, res) => {
+    res.json(await bot.shuffleYoutube())
+}
+
 module.exports = {
     play,
     getLinks,
@@ -87,5 +90,6 @@ module.exports = {
     addYoutubeLink,
     volumeDown,
     volumeUp,
-    stopYoutube
+    stopYoutube,
+    shuffleYoutube
 }
